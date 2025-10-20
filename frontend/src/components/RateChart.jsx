@@ -79,7 +79,8 @@ function RateChart({ currencyPair, historyData, onClose }) {
         },
         callbacks: {
           label: function(context) {
-            return `Rate: ${context.parsed.y.toFixed(6)}`;
+            const value = context.parsed.y;
+            return `Rate: ${typeof value === 'number' ? value.toFixed(6) : value}`;
           }
         }
       }
@@ -107,7 +108,7 @@ function RateChart({ currencyPair, historyData, onClose }) {
             size: 11
           },
           callback: function(value) {
-            return value.toFixed(4);
+            return typeof value === 'number' ? value.toFixed(4) : value;
           }
         }
       }
@@ -119,14 +120,14 @@ function RateChart({ currencyPair, historyData, onClose }) {
   };
 
   // Calculate stats
-  const rates = historyData.map(entry => entry.rate);
+  const rates = historyData.map(entry => parseFloat(entry.rate)).filter(rate => !isNaN(rate));
   const minRate = Math.min(...rates);
   const maxRate = Math.max(...rates);
   const avgRate = rates.reduce((sum, rate) => sum + rate, 0) / rates.length;
-  const latestRate = rates[rates.length - 1];
-  const oldestRate = rates[0];
+  const latestRate = rates[rates.length - 1] || 0;
+  const oldestRate = rates[0] || 0;
   const change = latestRate - oldestRate;
-  const changePercent = ((change / oldestRate) * 100).toFixed(2);
+  const changePercent = oldestRate !== 0 ? ((change / oldestRate) * 100).toFixed(2) : '0.00';
 
   return (
     <Modal
