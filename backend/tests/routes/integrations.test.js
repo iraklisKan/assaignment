@@ -14,15 +14,34 @@ const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
 const mockDelete = jest.fn();
 const mockGetProviders = jest.fn();
+const mockGetActiveIntegrationsWithKeys = jest.fn();
 
 jest.unstable_mockModule('../../src/services/integrationService.js', () => ({
+  getAllIntegrations: mockGetAll,
+  getIntegrationById: mockGetById,
+  createIntegration: mockCreate,
+  updateIntegration: mockUpdate,
+  deleteIntegration: mockDelete,
+  getSupportedProviders: mockGetProviders,
+  getActiveIntegrationsWithKeys: mockGetActiveIntegrationsWithKeys,
+}));
+
+// Mock the usage service
+jest.unstable_mockModule('../../src/services/usageService.js', () => ({
+  getIntegrationUsageStats: jest.fn(),
+  logRateRequest: jest.fn(),
+  logConversion: jest.fn(),
+}));
+
+// Mock the integrations index
+jest.unstable_mockModule('../../src/integrations/index.js', () => ({
+  getSupportedProviders: jest.fn().mockReturnValue([]),
+}));
+
+// Mock the scheduler
+jest.unstable_mockModule('../../src/services/scheduler.js', () => ({
   default: {
-    getAllIntegrations: mockGetAll,
-    getIntegrationById: mockGetById,
-    createIntegration: mockCreate,
-    updateIntegration: mockUpdate,
-    deleteIntegration: mockDelete,
-    getSupportedProviders: mockGetProviders,
+    loadIntegrations: jest.fn(),
   },
 }));
 

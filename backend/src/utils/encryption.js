@@ -63,3 +63,23 @@ export function decrypt(encryptedText) {
   
   return decrypted;
 }
+
+/**
+ * Encrypt API key (wrapper for tests)
+ * @param {string} apiKey - Plain API key to encrypt
+ * @returns {string|null} Encrypted API key or null if empty
+ */
+export function encryptApiKey(apiKey) {
+  if (!apiKey) return null;
+  return encrypt(apiKey);
+}
+
+/**
+ * Decrypt API key (wrapper for tests)
+ * @param {string} encryptedApiKey - Encrypted API key
+ * @returns {string|null} Decrypted API key or null if empty
+ */
+export function decryptApiKey(encryptedApiKey) {
+  if (!encryptedApiKey) return null;
+  return decrypt(encryptedApiKey);
+}

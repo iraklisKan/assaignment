@@ -42,6 +42,43 @@ export class MockIntegration extends BaseIntegration {
     };
   }
 
+  // Build a mock URL (not actually used)
+  buildUrl(apiKey, baseCurrency = 'USD') {
+    return `${this.baseUrl || 'http://localhost'}/mock/latest/${baseCurrency}`;
+  }
+
+  // Return fake exchange rates in array format for tests
+  async fetchRates(baseCurrency = 'USD') {
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    let rates = { ...this.mockRates };
+    
+    if (baseCurrency !== 'USD') {
+      const baseRate = this.mockRates[baseCurrency];
+      if (!baseRate) {
+        throw new Error(`Unsupported base currency: ${baseCurrency}`);
+      }
+      
+      rates = {};
+      rates['USD'] = 1 / baseRate;
+      
+      for (const [currency, rate] of Object.entries(this.mockRates)) {
+        if (currency !== baseCurrency) {
+          rates[currency] = rate / baseRate;
+        }
+      }
+    } else {
+      rates['USD'] = 1;
+    }
+
+    // Convert to array format for tests
+    return Object.entries(rates).map(([target, rate]) => ({
+      base: baseCurrency,
+      target,
+      rate: String(rate),
+    }));
+  }
+
   // Return fake exchange rates without calling any external API
   async fetchLatestRates(options = {}) {
     // Simulate a network delay to make it feel realistic

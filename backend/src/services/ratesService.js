@@ -257,3 +257,16 @@ export async function saveRateHistory(base, target, rate, sourceIntegrationId) {
 
   await query(sql, [base, target, rate, new Date(), sourceIntegrationId]);
 }
+
+// Default export for backwards compatibility with tests
+export default {
+  getAvailableCurrencies,
+  getLatestRates,
+  getHistoricalRates,
+  getRateHistory: getHistoricalRates, // Alias for backwards compatibility
+  convertCurrency,
+  updateLatestRate,
+  saveRates: updateLatestRate, // Alias
+  saveRateHistory,
+};
+

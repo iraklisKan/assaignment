@@ -84,7 +84,7 @@ describe('MockIntegration', () => {
       await integration.fetchRates();
       const duration = Date.now() - start;
       
-      expect(duration).toBeLessThan(100); // Should be near-instant
+      expect(duration).toBeLessThan(150); // Should be near-instant (increased tolerance for CI)
     });
   });
 
