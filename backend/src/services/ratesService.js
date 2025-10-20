@@ -1,0 +1,247 @@
+import { query } from '../config/database.js';
+import { getCacheClient } from '../config/redis.js';
+import { AppError } from '../middleware/errorHandler.js';
+import { validateCurrencyCode, validateDate } from '../utils/validation.js';
+
+/**
+ * Get list of available currencies
+ */
+export async function getAvailableCurrencies() {
+  const sql = `
+    SELECT DISTINCT base as code
+    FROM rates_latest
+    UNION
+    SELECT DISTINCT target as code
+    FROM rates_latest
+    ORDER BY code ASC
+  `;
+
+  const result = await query(sql);
+  return result.rows.map(row => row.code);
+}
+
+/**
+ * Get latest rates from cache or database
+ */
+export async function getLatestRates(filters = {}) {
+  const { base, target, q } = filters;
+  const cache = getCacheClient();
+
+  // If specific pair requested, try cache first
+  if (base && target) {
+    validateCurrencyCode(base);
+    validateCurrencyCode(target);
+    
+    const pair = `${base}-${target}`;
+    const cacheKey = `rates:${pair}`;
+    
+    try {
+      const cached = await cache.get(cacheKey);
+      if (cached) {
+        return [JSON.parse(cached)];
+      }
+    } catch (error) {
+      console.warn('Cache read error:', error.message);
+    }
+  }
+
+  // Query database
+  let sql = `
+    SELECT pair, base, target, rate, fetched_at, source_integration_id
+    FROM rates_latest
+  `;
+
+  const conditions = [];
+  const values = [];
+
+  if (base) {
+    conditions.push(`base = $${values.length + 1}`);
+    values.push(base.toUpperCase());
+  }
+
+  if (target) {
+    conditions.push(`target = $${values.length + 1}`);
+    values.push(target.toUpperCase());
+  }
+
+  if (q) {
+    conditions.push(`pair ILIKE $${values.length + 1}`);
+    values.push(`%${q}%`);
+  }
+
+  if (conditions.length > 0) {
+    sql += ' WHERE ' + conditions.join(' AND ');
+  }
+
+  sql += ' ORDER BY fetched_at DESC LIMIT 100';
+
+  const result = await query(sql, values);
+  return result.rows;
+}
+
+/**
+ * Get historical rates
+ */
+export async function getHistoricalRates(filters = {}) {
+  const { base, target, start, end, limit = 1000 } = filters;
+
+  if (!base || !target) {
+    throw new AppError('base and target parameters are required', 400);
+  }
+
+  validateCurrencyCode(base);
+  validateCurrencyCode(target);
+
+  if (start && !validateDate(start)) {
+    throw new AppError('Invalid start date format (use YYYY-MM-DD)', 400);
+  }
+
+  if (end && !validateDate(end)) {
+    throw new AppError('Invalid end date format (use YYYY-MM-DD)', 400);
+  }
+
+  let sql = `
+    SELECT id, base, target, rate, fetched_at, source_integration_id
+    FROM rates_history
+    WHERE base = $1 AND target = $2
+  `;
+
+  const values = [base.toUpperCase(), target.toUpperCase()];
+
+  if (start) {
+    values.push(start);
+    sql += ` AND fetched_at >= $${values.length}::date`;
+  }
+
+  if (end) {
+    values.push(end);
+    sql += ` AND fetched_at <= ($${values.length}::date + interval '1 day')`;
+  }
+
+  sql += ` ORDER BY fetched_at DESC LIMIT $${values.length + 1}`;
+  values.push(limit);
+
+  const result = await query(sql, values);
+  return result.rows;
+}
+
+/**
+ * Convert currency amount
+ */
+export async function convertCurrency(from, to, amount) {
+  if (!from || !to || !amount) {
+    throw new AppError('from, to, and amount parameters are required', 400);
+  }
+
+  validateCurrencyCode(from);
+  validateCurrencyCode(to);
+
+  const amountNum = parseFloat(amount);
+  if (isNaN(amountNum) || amountNum <= 0) {
+    throw new AppError('amount must be a positive number', 400);
+  }
+
+  // If same currency, return as-is
+  if (from.toUpperCase() === to.toUpperCase()) {
+    return {
+      from: from.toUpperCase(),
+      to: to.toUpperCase(),
+      amount: amountNum,
+      result: amountNum,
+      rate: 1,
+      timestamp: new Date()
+    };
+  }
+
+  // Get rate from latest rates
+  const pair = `${from.toUpperCase()}-${to.toUpperCase()}`;
+  const cache = getCacheClient();
+
+  try {
+    const cached = await cache.get(`rates:${pair}`);
+    if (cached) {
+      const data = JSON.parse(cached);
+      return {
+        from: from.toUpperCase(),
+        to: to.toUpperCase(),
+        amount: amountNum,
+        result: amountNum * data.rate,
+        rate: data.rate,
+        timestamp: data.fetched_at
+      };
+    }
+  } catch (error) {
+    console.warn('Cache read error:', error.message);
+  }
+
+  // Fallback to database
+  const sql = `
+    SELECT rate, fetched_at
+    FROM rates_latest
+    WHERE pair = $1
+  `;
+
+  const result = await query(sql, [pair]);
+
+  if (result.rows.length === 0) {
+    throw new AppError(`Exchange rate not available for ${pair}`, 404);
+  }
+
+  const { rate, fetched_at } = result.rows[0];
+
+  return {
+    from: from.toUpperCase(),
+    to: to.toUpperCase(),
+    amount: amountNum,
+    result: amountNum * parseFloat(rate),
+    rate: parseFloat(rate),
+    timestamp: fetched_at
+  };
+}
+
+/**
+ * Update latest rate in database and cache
+ */
+export async function updateLatestRate(base, target, rate, sourceIntegrationId) {
+  const pair = `${base}-${target}`;
+  const now = new Date();
+
+  const sql = `
+    INSERT INTO rates_latest (pair, base, target, rate, fetched_at, source_integration_id)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (pair) DO UPDATE
+    SET rate = $4, fetched_at = $5, source_integration_id = $6
+  `;
+
+  await query(sql, [pair, base, target, rate, now, sourceIntegrationId]);
+
+  // Update cache
+  const cache = getCacheClient();
+  const cacheKey = `rates:${pair}`;
+  const cacheData = JSON.stringify({
+    pair,
+    base,
+    target,
+    rate,
+    fetched_at: now,
+    source_integration_id: sourceIntegrationId
+  });
+
+  try {
+    await cache.set(cacheKey, cacheData, { EX: 3600 }); // 1 hour TTL
+  } catch (error) {
+    console.warn('Cache write error:', error.message);
+  }
+}
+
+/**
+ * Save rate to history
+ */
+export async function saveRateHistory(base, target, rate, sourceIntegrationId) {
+  const sql = `
+    INSERT INTO rates_history (base, target, rate, fetched_at, source_integration_id)
+    VALUES ($1, $2, $3, $4, $5)
+  `;
+
+  await query(sql, [base, target, rate, new Date(), sourceIntegrationId]);
+}
