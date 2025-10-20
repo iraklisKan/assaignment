@@ -185,7 +185,50 @@ export async function convertCurrency(from, to, amount) {
   const result = await query(sql, [pair]);
 
   if (result.rows.length === 0) {
-    throw new AppError(`Exchange rate not available for ${pair}`, 404);
+    // Try cross-rate conversion through any available base currency
+    // Base currencies we fetch rates for: USD, EUR, GBP, JPY
+    const baseCurrencies = ['USD', 'EUR', 'GBP', 'JPY'];
+    
+    for (const base of baseCurrencies) {
+      // Try: FROM→BASE + BASE→TO
+      const fromBasePair = `${base}-${from.toUpperCase()}`;
+      const toBasePair = `${base}-${to.toUpperCase()}`;
+      
+      const fromBaseResult = await query(`SELECT rate FROM rates_latest WHERE pair = $1`, [fromBasePair]);
+      const toBaseResult = await query(`SELECT rate FROM rates_latest WHERE pair = $1`, [toBasePair]);
+      
+      if (fromBaseResult.rows.length > 0 && toBaseResult.rows.length > 0) {
+        // Cross-rate calculation: (1/FROM_BASE_RATE) * TO_BASE_RATE
+        // Example: THB→EUR via USD: (1/USD-THB rate) * (USD-EUR rate)
+        const fromBaseRate = parseFloat(fromBaseResult.rows[0].rate);
+        const toBaseRate = parseFloat(toBaseResult.rows[0].rate);
+        const crossRate = (1 / fromBaseRate) * toBaseRate;
+        
+        const convertedResult = {
+          from: from.toUpperCase(),
+          to: to.toUpperCase(),
+          amount: amountNum,
+          result: amountNum * crossRate,
+          rate: crossRate,
+          timestamp: new Date(),
+          via: base, // Indicate which base currency was used for calculation
+          crossRate: true
+        };
+        
+        // Log the conversion
+        logConversion(
+          convertedResult.from,
+          convertedResult.to,
+          convertedResult.amount,
+          convertedResult.result,
+          convertedResult.rate
+        ).catch(err => console.warn('Failed to log conversion:', err.message));
+        
+        return convertedResult;
+      }
+    }
+    
+    throw new AppError(`Exchange rate not available for ${pair}. No cross-rate path found.`, 404);
   }
 
   const { rate, fetched_at } = result.rows[0];

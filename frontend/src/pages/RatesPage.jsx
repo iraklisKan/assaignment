@@ -6,9 +6,7 @@ import RateChart from '../components/RateChart.jsx';
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
 function RatesPage() {
-  // Define supported base currencies (currencies we fetch rates for)
-  const BASE_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY'];
-  
+  // Use all available currencies from the backend (fetched dynamically)
   const [currencies, setCurrencies] = useState([]);
   const [baseCurrency, setBaseCurrency] = useState('USD');
   const [rates, setRates] = useState([]);
@@ -190,7 +188,7 @@ function RatesPage() {
                   value={fromCurrency}
                   onChange={(e) => setFromCurrency(e.target.value)}
                 >
-                  {BASE_CURRENCIES.map((currency) => (
+                  {currencies.map((currency) => (
                     <option key={currency} value={currency}>
                       {currency}
                     </option>
@@ -263,7 +261,7 @@ function RatesPage() {
                   onChange={(e) => setBaseCurrency(e.target.value)}
                   className="w-24"
                 >
-                  {BASE_CURRENCIES.map((currency) => (
+                  {currencies.map((currency) => (
                     <option key={currency} value={currency}>
                       {currency}
                     </option>
