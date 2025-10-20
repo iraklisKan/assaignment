@@ -115,3 +115,124 @@ export async function getAggregatedUsage(days = 7) {
   const result = await query(sql);
   return result.rows;
 }
+
+/**
+ * Log individual API request (detailed logging)
+ */
+export async function logRequest(integrationId, baseCurrency, success, responseTimeMs, errorMessage = null) {
+  const sql = `
+    INSERT INTO rate_requests (
+      integration_id, base_currency, success, response_time_ms, error_message
+    ) VALUES ($1, $2, $3, $4, $5)
+  `;
+
+  await query(sql, [integrationId, baseCurrency, success, responseTimeMs, errorMessage]);
+}
+
+/**
+ * Get recent API requests for monitoring
+ */
+export async function getRecentRequests(integrationId = null, limit = 100) {
+  let sql = `
+    SELECT 
+      rr.id,
+      rr.integration_id,
+      i.name as integration_name,
+      rr.base_currency,
+      rr.success,
+      rr.response_time_ms,
+      rr.error_message,
+      rr.created_at
+    FROM rate_requests rr
+    JOIN integrations i ON rr.integration_id = i.id
+  `;
+
+  const params = [];
+  if (integrationId) {
+    sql += ` WHERE rr.integration_id = $1`;
+    params.push(integrationId);
+  }
+
+  sql += ` ORDER BY rr.created_at DESC LIMIT ${limit}`;
+
+  const result = await query(sql, params);
+  return result.rows;
+}
+
+/**
+ * Get API request statistics
+ */
+export async function getRequestStats(integrationId, hours = 24) {
+  const sql = `
+    SELECT 
+      COUNT(*) as total_requests,
+      SUM(CASE WHEN success THEN 1 ELSE 0 END) as successful_requests,
+      SUM(CASE WHEN NOT success THEN 1 ELSE 0 END) as failed_requests,
+      ROUND(AVG(response_time_ms)::numeric, 2) as avg_response_time_ms,
+      MAX(response_time_ms) as max_response_time_ms,
+      MIN(response_time_ms) as min_response_time_ms
+    FROM rate_requests
+    WHERE integration_id = $1
+      AND created_at >= NOW() - INTERVAL '${hours} hours'
+  `;
+
+  const result = await query(sql, [integrationId]);
+  return result.rows[0];
+}
+
+/**
+ * Log user conversion request
+ */
+export async function logConversion(fromCurrency, toCurrency, amount, result, rateUsed) {
+  const sql = `
+    INSERT INTO conversions (
+      from_currency, to_currency, amount, result, rate_used
+    ) VALUES ($1, $2, $3, $4, $5)
+  `;
+
+  await query(sql, [fromCurrency, toCurrency, amount, result, rateUsed]);
+}
+
+/**
+ * Get recent conversions
+ */
+export async function getRecentConversions(limit = 50) {
+  const sql = `
+    SELECT 
+      id,
+      from_currency,
+      to_currency,
+      amount,
+      result,
+      rate_used,
+      created_at
+    FROM conversions
+    ORDER BY created_at DESC
+    LIMIT $1
+  `;
+
+  const result = await query(sql, [limit]);
+  return result.rows;
+}
+
+/**
+ * Get popular currency pairs
+ */
+export async function getPopularPairs(days = 7, limit = 10) {
+  const sql = `
+    SELECT 
+      from_currency,
+      to_currency,
+      COUNT(*) as conversion_count,
+      AVG(amount) as avg_amount,
+      MAX(created_at) as last_conversion
+    FROM conversions
+    WHERE created_at >= NOW() - INTERVAL '${days} days'
+    GROUP BY from_currency, to_currency
+    ORDER BY conversion_count DESC
+    LIMIT $1
+  `;
+
+  const result = await query(sql, [limit]);
+  return result.rows;
+}

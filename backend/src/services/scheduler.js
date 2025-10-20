@@ -25,7 +25,7 @@
 import cron from 'node-cron';
 import { getActiveIntegrationsWithKeys } from '../services/integrationService.js';
 import { updateLatestRate, saveRateHistory } from '../services/ratesService.js';
-import { recordUsage, recordError } from '../services/usageService.js';
+import { recordUsage, recordError, logRequest } from '../services/usageService.js';
 import { createIntegration } from '../integrations/index.js';
 
 class RateScheduler {
@@ -145,9 +145,15 @@ class RateScheduler {
 
       // Fetch rates for each base currency
       for (const baseCurrency of baseCurrencies) {
+        const requestStartTime = Date.now();
+        
         try {
           // Fetch rates (with retry logic built into integration)
           const rateData = await integration.fetchLatestRates({ base: baseCurrency });
+          const responseTime = Date.now() - requestStartTime;
+          
+          // Log successful request
+          await logRequest(integrationConfig.id, baseCurrency, true, responseTime);
           
           if (!rateData || !rateData.rates) {
             console.warn(`Invalid rate data received for base ${baseCurrency}`);
@@ -175,9 +181,14 @@ class RateScheduler {
           }
 
           totalUpdatedCount += updatedCount;
-          console.log(`  ✓ Stored ${updatedCount} rates for base ${baseCurrency}`);
+          console.log(`  ✓ Stored ${updatedCount} rates for base ${baseCurrency} (${responseTime}ms)`);
 
         } catch (error) {
+          const responseTime = Date.now() - requestStartTime;
+          
+          // Log failed request
+          await logRequest(integrationConfig.id, baseCurrency, false, responseTime, error.message);
+          
           console.error(`  ✗ Error fetching ${baseCurrency} rates:`, error.message);
           // Continue with other base currencies
         }

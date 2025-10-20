@@ -1,470 +1,1306 @@
-# Currency Exchange Rate Hub# Currency Exchange Rate Hub
+# Currency Exchange Rate Hub# Currency Exchange Rate Hub# Currency Exchange Rate Hub# Currency Exchange Rate Hub# Currency Exchange Rate Hub# Currency Exchange Rate Hub# Currency Exchange Rate Hub
 
 
 
-A full-stack web application for managing and monitoring real-time currency exchange rates from multiple providers with automated scheduling, caching, and fallback mechanisms.A full-stack application for aggregating, caching, and managing exchange rates from multiple external APIs. Built with Express.js, React, PostgreSQL, and Redis.
+## Setup
 
 
 
-## 🚀 Quick Start## 🎯 Overview
+```bash## Setup
 
-
-
-### PrerequisitesThis system provides:
-
-- Docker & Docker Compose- **Multi-provider integration**: Connect to multiple exchange rate APIs with automatic failover
-
-- Node.js 18+ (for local development)- **Intelligent caching**: Redis-based caching with in-memory LRU fallback
-
-- Git- **Scheduled polling**: Configurable per-integration rate fetching
-
-- **REST API**: Complete endpoints for integration management, rates, conversion, and monitoring
-
-### Setup (Using Docker - Recommended)- **Admin UI**: React-based interface for CRUD operations and data visualization
-
-- **Secure**: API keys encrypted at rest using AES-256-CBC
-
-1. **Clone the repository**- **Scalable**: Stateless architecture ready for horizontal scaling
-
-```bash
-
-git clone https://github.com/iraklisKan/assaignment.git## 🏗️ Architecture
+git clone https://github.com/iraklisKan/assaignment.git
 
 cd assaignment
 
-```### Backend (Node.js + Express)
+docker-compose up -d
 
-- **Plugin-based integrations**: Each external API implements a common interface
+``````bashFull-stack application for managing real-time currency exchange rates from multiple providers.
 
-2. **Start all services**- **Scheduler service**: Polls integrations based on configurable intervals
 
-```bash- **Database layer**: PostgreSQL for persistent storage
 
-docker-compose up -d- **Cache layer**: Redis (with in-memory fallback) for latest rates
+- Frontend: http://localhost:3000git clone https://github.com/iraklisKan/assaignment.git
 
-```- **Encryption**: API keys encrypted before database storage
+- API: http://localhost:3001
 
-- **Error handling**: Comprehensive error handling and logging
+cd assaignment
 
-3. **Access the application**
+**Add API Key:** http://localhost:3000/integrations → "Add Integration" → Choose provider (encrypted AES-256-CBC)
 
-- Frontend: http://localhost:3000### Frontend (React)
-
-- Backend API: http://localhost:3001- **Integrations Management**: CRUD operations for external API configurations
-
-- Health Check: http://localhost:3001/api/monitoring/health- **Rates Viewer**: Search, filter, and view current exchange rates
-
-- **Historical Charts**: Visualize rate trends using Chart.js
-
-4. **Add your API integration**- **Currency Converter**: Real-time currency conversion
-
-- Navigate to http://localhost:3000/integrations- **Monitoring Dashboard**: System health and usage metrics
-
-- Click "Add Integration"
-
-- Select provider (e.g., ExchangeRate-API)### Database Schema
-
-- Enter your API key- `integrations`: API integration configurations
-
-- Set priority and polling interval- `rates_latest`: Most recent exchange rates (fast lookups)
-
-- Save- `rates_history`: Historical rate data for trend analysis
-
-- `integration_usage`: API usage tracking and monitoring
-
-That's it! The scheduler will automatically start fetching rates every 5 minutes.
-
-## 📋 Prerequisites
+docker-compose up -d
 
 ---
 
-- Docker and Docker Compose
+```---A full-stack application for managing real-time currency exchange rates from multiple providers.
 
-## 📋 Features- Node.js 18+ (for local development)
+## Tests & Endpoints
+
+
+
+```bash
+
+cd backend && npm test**Access:**
+
+cd frontend && npm test
+
+```- Frontend: http://localhost:3000
+
+
+
+| Method | Endpoint | Description |- API: http://localhost:3001## Setup Instructions
+
+|--------|----------|-------------|
+
+| GET | /api/rates/latest?base=USD | Current rates |
+
+| GET | /api/rates/convert?from=USD&to=EUR&amount=100 | Convert |
+
+| GET | /api/rates/history?base=USD&days=7 | History |**Add API Key:**
+
+| GET | /api/integrations | List providers |
+
+| POST | /api/integrations | Add provider |1. Go to http://localhost:3000/integrations
+
+| PATCH | /api/integrations/:id | Update |
+
+| DELETE | /api/integrations/:id | Delete |2. Click "Add Integration"**Prerequisites:** Docker & Docker Compose---A full-stack application for managing real-time currency exchange rates from multiple providers with automated scheduling and monitoring.
+
+| GET | /api/monitoring/health | Health |
+
+3. Select provider & enter API key (encrypted with AES-256-CBC)
+
+---
+
+
+
+## Design Decisions
+
+---
+
+- **Plugin architecture** (factory pattern) - extensible provider system
+
+- **Priority fallback** - tries providers by priority until success**Steps:**
+
+- **Built-in scheduler** (5 min) - portable, no external cron
+
+- **Dual tables** - `rates_latest` (fast) + `rates_history` (time-series)## Tests & Endpoints
+
+- **AES-256-CBC encryption** - API keys encrypted at rest
+
+- **Redis + LRU cache** - 5-min TTL, in-memory fallback```bash
+
+- **Docker Compose** - easy setup vs Kubernetes complexity
+
+- **Single scheduler** - use leader election for distributed systems**Run Tests:**
+
+
+
+---```bashgit clone https://github.com/iraklisKan/assaignment.git## Setup Instructions
+
+
+
+## Pagescd backend && npm test
+
+
+
+- http://localhost:3000 - Dashboardcd frontend && npm testcd assaignment
+
+- http://localhost:3000/integrations - Manage providers
+
+- http://localhost:3000/convert - Converter```
+
+- http://localhost:3000/history - Charts
+
+- http://localhost:3000/monitoring - Healthdocker-compose up -d
+
+
+**API Endpoints:**
+
+```
+
+| Method | Endpoint | Purpose |
+
+|--------|----------|---------|### 1. Clone and Start---A full-stack web application for managing and monitoring real-time currency exchange rates from multiple providers with automated scheduling, caching, and fallback mechanisms.A full-stack application for aggregating, caching, and managing exchange rates from multiple external APIs. Built with Express.js, React, PostgreSQL, and Redis.
+
+| GET | /api/rates/latest?base=USD | Get current rates |
+
+| GET | /api/rates/convert?from=USD&to=EUR&amount=100 | Convert currency |**Access:**
+
+| GET | /api/rates/history?base=USD&days=7 | Historical data |
+
+| GET | /api/integrations | List providers |- Frontend: http://localhost:3000```bash
+
+| POST | /api/integrations | Add provider |
+
+| PATCH | /api/integrations/:id | Update provider |- Backend API: http://localhost:3001
+
+| DELETE | /api/integrations/:id | Delete provider |
+
+| GET | /api/monitoring/health | System health |git clone https://github.com/iraklisKan/assaignment.git
+
+
+
+------
+
+
+
+## Design Decisionscd assaignment
+
+
+
+**Architecture:**## Environment Variables
+
+- Plugin-based providers (factory pattern) - easy to add new APIs
+
+- Priority fallback - tries providers by priority until successdocker-compose up -d## Setup Instructions
+
+- Built-in scheduler (every 5 min) - portable, no external cron needed
+
+- Dual tables: `rates_latest` (fast lookups) + `rates_history` (time-series)All required variables are pre-configured in `docker-compose.yml`:
+
+
+
+**Security:**```
+
+- API keys encrypted (AES-256-CBC) before database storage
+
+- `.env` gitignored - demo credentials in docker-compose only```env
+
+
+
+**Performance:**DATABASE_PASSWORD=admin123                              # PostgreSQL password
+
+- Redis cache + in-memory LRU fallback (5-min TTL)
+
+- Indexed queries for fast lookupsAPP_DATA_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6        # Encryption key (32 chars)
+
+
+
+**Assumptions:**```### 2. Access URLs
+
+- ISO 4217 currency codes (USD, EUR, GBP, etc.)
+
+- Min polling interval: 60s (respects free tier limits)
+
+- All timestamps UTC
+
+- Single scheduler instance (use leader election for distributed systems)**Adding API Keys:**- **Frontend:** http://localhost:3000### Prerequisites## 🚀 Quick Start## 🎯 Overview
+
+
+
+**Trade-offs:**1. Go to http://localhost:3000/integrations
+
+- Docker Compose (easy setup) vs Kubernetes (production scale)
+
+- In-app scheduler (portable) vs external cron (distributed systems)2. Click "Add Integration"- **Backend API:** http://localhost:3001
+
+- Data duplication (performance) vs single table (storage efficiency)
+
+3. Select provider (ExchangeRate-API, Fixer.io, CurrencyLayer, or Mock)
+
+---
+
+4. Enter API key (get free key from provider website)- Docker & Docker Compose
+
+## Frontend Pages
+
+5. API keys are encrypted before storage (AES-256-CBC)
+
+- http://localhost:3000 - Dashboard (latest rates)
+
+- http://localhost:3000/integrations - Manage providers### 3. Environment Variables
+
+- http://localhost:3000/convert - Currency converter
+
+- http://localhost:3000/history - Rate trends**Note:** `.env` file is gitignored for security.
+
+- http://localhost:3000/monitoring - System health
 
 - Git
 
-### Core Functionality
-
-✅ **Multi-Provider Support** - Integrate with ExchangeRate-API, Fixer.io, CurrencyLayer, or Mock providers  ## 🚀 Quick Start
-
-✅ **Automated Scheduling** - Fetch rates every 5 minutes with priority-based fallback  
-
-✅ **Real-Time Conversion** - Convert between 160+ currencies instantly  ### 1. Clone and Setup
-
-✅ **Historical Charts** - Visualize rate trends over 7, 30, or 90 days  
-
-✅ **Caching Layer** - Redis cache with in-memory LRU fallback  ```bash
-
-✅ **Health Monitoring** - Dashboard showing provider uptime and performance  # Clone the repository
-
-git clone <your-repo-url>
-
-### Securitycd assaignment
-
-🔒 **API Key Encryption** - AES-256-CBC encryption for stored credentials  
-
-🔒 **Environment Variables** - Sensitive config never committed  # Copy environment variables
-
-🔒 **Input Validation** - All user inputs sanitized  copy .env.example .env
-
-
-
-### Architecture# Edit .env and set your encryption key (required)
-
-🏗️ **Plugin System** - Easy to add new providers  # APP_DATA_KEY should be a 32-character string
-
-🏗️ **Layered Design** - Routes → Services → Database  ```
-
-🏗️ **Docker Compose** - One-command deployment  
-
-🏗️ **PostgreSQL** - Reliable data persistence  ### 2. Start with Docker Compose
-
-🏗️ **Redis Cache** - Fast rate lookups  
-
-```bash
-
----# Build and start all services
-
-docker-compose up --build
-
-## 🏛️ Architecture
-
-# Or run in detached mode
-
-```docker-compose up -d --build
-
-┌─────────────────┐```
-
-│  React Frontend │ (Port 3000)
-
-│   Tailwind CSS  │This will start:
-
-└────────┬────────┘- **Backend API**: http://localhost:3001
-
-         │ REST API- **Frontend UI**: http://localhost:3000
-
-         ▼- **PostgreSQL**: localhost:5432
-
-┌─────────────────┐- **Redis**: localhost:6379
-
-│ Express Backend │ (Port 3001)
-
-│  - Scheduler    │### 3. Verify Installation
-
-│  - Integrations │
-
-│  - Services     │1. Open http://localhost:3000 in your browser
-
-└────────┬────────┘2. Go to "Integrations" and click "Add Integration"
-
-         │3. Create a test integration using the "Mock Provider"
-
-    ┌────┴─────┐
-
-    ▼          ▼### 4. Stop Services
-
-┌─────────┐ ┌────────┐
-
-│PostgreSQL│ │ Redis  │```bash
-
-│  (5432) │ │ (6379) │docker-compose down
-
-└─────────┘ └────────┘
-
-```# To remove volumes (database data):
-
-docker-compose down -v
-
-**See detailed documentation in `/docs`:**```
-
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design and data flows
-
-- [BACKEND.md](docs/BACKEND.md) - API routes and services## 🛠️ Development Setup
-
-- [FRONTEND.md](docs/FRONTEND.md) - React components and pages
-
-- [DATABASE.md](docs/DATABASE.md) - Schema and migrations### Backend Development
-
-- [TESTS.md](docs/TESTS.md) - Testing strategy
-
-```bash
-
----cd backend
-
-
-
-## 🔌 API Documentation# Install dependencies
-
-npm install
-
-### Base URL
-
-```# Set up environment variables
-
-http://localhost:3001/apicopy ..\.env.example .env
-
-```
-
-# Run database migrations
-
-### Endpointsnpm run migrate
-
-
-
-#### Rates# Start development server (with auto-reload)
-
-```httpnpm run dev
-
-GET /rates/latest?base=USD
-
-# Response: { base: "USD", rates: { EUR: 0.85, GBP: 0.73, ... } }# Run tests
-
-npm test
-
-GET /rates/convert?from=USD&to=EUR&amount=100
-
-# Response: { from: "USD", to: "EUR", amount: 100, result: 85, rate: 0.85 }# Run tests with coverage
-
-npm run test:coverage
-
-GET /rates/history?base=USD&days=7```
-
-# Response: [{ date: "2025-10-20", rates: {...} }, ...]
-
-```### Frontend Development
-
-
-
-#### Integrations```bash
-
-```httpcd frontend
-
-GET    /integrations              # List all providers
-
-POST   /integrations              # Add new provider# Install dependencies
-
-GET    /integrations/:id          # Get one providernpm install
-
-PATCH  /integrations/:id          # Update provider
-
-DELETE /integrations/:id          # Remove provider# Start development server
-
-GET    /integrations/providers    # Supported provider typesnpm start
-
-```
-
-# Run tests
-
-#### Monitoringnpm test
-
-```http
-
-GET /monitoring/health            # System health check# Build for production
-
-GET /monitoring/stats             # Provider statisticsnpm run build
-
-GET /monitoring/usage             # Conversion logs```
-
-```
-
-## 📚 API Documentation
-
 ---
 
-### Base URL
+All required variables are pre-configured in `docker-compose.yml`:
 
-## 🗄️ Database Schema```
+## Running Tests
 
-http://localhost:3001/api
 
-### Tables```
 
+**Backend:**
 
-
-**integrations** - API provider configurations### Integrations Endpoints
-
-```sql
-
-- id, name, provider, base_url, api_key (encrypted)#### Get All Integrations
-
-- priority, poll_interval_seconds, active```http
-
-- created_at, updated_atGET /api/integrations
-
-```Query Parameters:
-
-  - active: boolean (filter by active status)
-
-**rates_latest** - Current exchange rates  - provider: string (filter by provider)
-
-```sql
-
-- id, base_currency, target_currency, rateResponse:
-
-- integration_id, fetched_at{
-
-```  "success": true,
-
-  "data": [
-
-**rates_history** - Historical rates for charting    {
-
-```sql      "id": "uuid",
-
-- Same as rates_latest (append-only)      "name": "My API",
-
-```      "provider": "exchangerate-api",
-
-      "base_url": "https://...",
-
-**rate_requests** - API call logs      "priority": 100,
-
-```sql      "poll_interval_seconds": 300,
-
-- id, integration_id, base_currency      "active": true,
-
-- success, response_time_ms, error_message      "created_at": "2024-01-01T00:00:00Z",
-
-```      "updated_at": "2024-01-01T00:00:00Z"
-
-    }
-
-**conversions** - User conversion tracking  ],
-
-```sql  "count": 1
-
-- id, from_currency, to_currency, amount}
-
-- result, rate_used, created_at```
-
-```
-
-#### Create Integration
-
----```http
-
-POST /api/integrations
-
-## ⚙️ Environment VariablesContent-Type: application/json
-
-
-
-### Required Variables{
-
-  "name": "My Exchange Rate API",
-
-Create a `.env` file in the root directory (or use docker-compose defaults):  "provider": "exchangerate-api",
-
-  "base_url": "https://v6.exchangerate-api.com",
-
-```env  "api_key": "your-api-key",
-
-# Database  "priority": 100,
-
-DATABASE_HOST=postgres  "poll_interval_seconds": 300,
-
-DATABASE_PORT=5432  "active": true
-
-DATABASE_NAME=currency_exchange}
-
-DATABASE_USER=postgres
-
-DATABASE_PASSWORD=your-secure-passwordResponse: 201 Created
-
-{
-
-# Redis  "success": true,
-
-REDIS_HOST=redis  "data": { /* integration object */ },
-
-REDIS_PORT=6379  "message": "Integration created successfully"
-
-}
-
-# Security```
-
-APP_DATA_KEY=your-32-character-encryption-key
-
-#### Update Integration
-
-# Server```http
-
-PORT=3001PUT /api/integrations/:id
-
-NODE_ENV=productionContent-Type: application/json
-
-```
-
-{
-
-**Note:** The `.env` file is gitignored. See `.env.example` for template.  "name": "Updated Name",
-
-  "priority": 50,
-
----  "active": false
-
-}
-
-## 🧪 Testing```
-
-
-
-### Backend Tests#### Delete Integration (Soft Delete)
-
-```http
-
-```bashDELETE /api/integrations/:id
+```bash```env
 
 cd backend
 
-npm installResponse: 200 OK
+npm test                  # Run all testsDATABASE_PASSWORD=admin123### Installation Steps### PrerequisitesThis system provides:
 
-npm test                    # Run all tests{
+npm run test:coverage     # With coverage
 
-npm run test:coverage       # Generate coverage report  "success": true,
+```APP_DATA_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
 
-```  "message": "Integration deactivated successfully"
+
+
+**Frontend:**```
+
+```bash
+
+cd frontend
+
+npm test
+
+```**API Keys:** Not included for security. Add via UI at http://localhost:3000/integrations1. **Clone the repository**- Docker & Docker Compose- **Multi-provider integration**: Connect to multiple exchange rate APIs with automatic failover
+
+
+
+---
+
+
+
+## API EndpointsSupported providers:```bash
+
+
+
+**Base URL:** `http://localhost:3001/api`- ExchangeRate-API (https://www.exchangerate-api.com/) - 1,500 free requests/month
+
+
+
+### Rates- Fixer.io (https://fixer.io/) - 100 requests/monthgit clone https://github.com/iraklisKan/assaignment.git- Node.js 18+ (for local development)- **Intelligent caching**: Redis-based caching with in-memory LRU fallback
+
+- `GET /rates/latest?base=USD` - Get current rates
+
+- `GET /rates/convert?from=USD&to=EUR&amount=100` - Convert currency- CurrencyLayer (https://currencylayer.com/) - 100 requests/month
+
+- `GET /rates/history?base=USD&target=EUR&days=7` - Historical data
+
+- Mock Provider - No key neededcd assaignment
+
+### Integrations
+
+- `GET /integrations` - List all providers
+
+- `POST /integrations` - Add provider (body: `{name, provider, baseUrl, apiKey, priority, pollIntervalSeconds}`)
+
+- `PATCH /integrations/:id` - Update provider---```- Git- **Scheduled polling**: Configurable per-integration rate fetching
+
+- `DELETE /integrations/:id` - Remove provider
+
+- `GET /integrations/providers` - Supported provider types
+
+
+
+### Monitoring## Running Tests
+
+- `GET /monitoring/health` - System health
+
+- `GET /monitoring/stats` - Provider statistics
+
+- `GET /monitoring/usage` - API call logs
+
+```bash2. **Start all services**- **REST API**: Complete endpoints for integration management, rates, conversion, and monitoring
+
+---
+
+# Backend tests
+
+## Frontend URLs
+
+cd backend```bash
+
+- **Dashboard:** http://localhost:3000 - View latest rates
+
+- **Integrations:** http://localhost:3000/integrations - Manage API providersnpm test
+
+- **Converter:** http://localhost:3000/convert - Convert currencies
+
+- **History:** http://localhost:3000/history - View rate trendsdocker-compose up -d### Setup (Using Docker - Recommended)- **Admin UI**: React-based interface for CRUD operations and data visualization
+
+- **Monitoring:** http://localhost:3000/monitoring - System health & stats
+
+# Frontend tests
+
+---
+
+cd frontend```
+
+## Design Decisions & Assumptions
+
+npm test
+
+**Architecture:**
+
+- Plugin-based provider system (factory pattern) for easy extensibility```- **Secure**: API keys encrypted at rest using AES-256-CBC
+
+- Priority-based fallback: tries providers by priority until success
+
+- Automated scheduler (every 5 minutes) instead of external cron
+
+- Separate tables: `rates_latest` (current) and `rates_history` (time-series)
+
+---The application will start automatically:
+
+**Security:**
+
+- API keys encrypted with AES-256-CBC before database storage
+
+- `.env` file gitignored, demo credentials in docker-compose only
+
+## API Endpoints- **Frontend:** http://localhost:30001. **Clone the repository**- **Scalable**: Stateless architecture ready for horizontal scaling
+
+**Performance:**
+
+- Redis cache with in-memory LRU fallback (5-minute TTL)
+
+- Indexed database queries for fast lookups
+
+**Base URL:** `http://localhost:3001/api`- **Backend API:** http://localhost:3001
+
+**Assumptions:**
+
+- Currency codes follow ISO 4217 (USD, EUR, GBP, etc.)
+
+- Minimum polling interval: 60 seconds (respects API rate limits)
+
+- Scheduler fetches 4 base currencies: USD, EUR, GBP, JPY### Rates```bash
+
+- All timestamps stored as UTC
+
+- Single scheduler instance (use leader election for multi-instance)- `GET /rates/latest?base=USD` - Get latest rates
+
+
+
+**Trade-offs:**- `GET /rates/convert?from=USD&to=EUR&amount=100` - Convert currency---
+
+- Docker Compose (easy setup) vs Kubernetes (production scale)
+
+- In-app scheduler (portable) vs cron (distributed systems)- `GET /rates/history?base=USD&target=EUR&days=7` - Historical data
+
+- Data duplication (latest + history tables) vs single table (performance gain justifies duplication)
+
+git clone https://github.com/iraklisKan/assaignment.git## 🏗️ Architecture
+
+### Integrations
+
+- `GET /integrations` - List all providers## Environment Variables
+
+- `POST /integrations` - Add provider (body: `{name, provider, baseUrl, apiKey, priority, pollIntervalSeconds}`)
+
+- `PATCH /integrations/:id` - Update providercd assaignment
+
+- `DELETE /integrations/:id` - Delete provider
+
+- `GET /integrations/providers` - Supported provider types### Required Variables (Already configured in docker-compose.yml)
+
+
+
+### Monitoring```### Backend (Node.js + Express)
+
+- `GET /monitoring/health` - System health
+
+- `GET /monitoring/stats` - Provider statistics```env
+
+- `GET /monitoring/usage` - Usage logs
+
+# Database Configuration- **Plugin-based integrations**: Each external API implements a common interface
+
+---
+
+DATABASE_HOST=postgres
+
+## Frontend Access
+
+DATABASE_PORT=54322. **Start all services**- **Scheduler service**: Polls integrations based on configurable intervals
+
+- **Dashboard:** http://localhost:3000 - View latest rates
+
+- **Converter:** http://localhost:3000/convert - Convert currenciesDATABASE_NAME=currency_exchange
+
+- **History:** http://localhost:3000/history - View rate trends
+
+- **Integrations:** http://localhost:3000/integrations - Manage API providersDATABASE_USER=postgres```bash- **Database layer**: PostgreSQL for persistent storage
+
+- **Monitoring:** http://localhost:3000/monitoring - System health dashboard
+
+DATABASE_PASSWORD=admin123
+
+---
+
+docker-compose up -d- **Cache layer**: Redis (with in-memory fallback) for latest rates
+
+## Design Decisions
+
+# Redis Cache
+
+1. **Plugin Architecture:** Factory pattern for easy provider addition without core changes
+
+2. **Priority Fallback:** Tries providers by priority until one succeeds (graceful degradation)REDIS_HOST=redis```- **Encryption**: API keys encrypted before database storage
+
+3. **Dual Caching:** Redis (primary) + in-memory LRU (fallback) for high performance
+
+4. **Separate Tables:** `rates_latest` (fast current lookups) vs `rates_history` (time-series analysis)REDIS_PORT=6379
+
+5. **API Key Encryption:** AES-256-CBC encryption before database storage
+
+6. **Built-in Scheduler:** Node.js interval (platform-independent, easier debugging)- **Error handling**: Comprehensive error handling and logging
+
+7. **Docker Compose:** Single-command setup for consistent environments
+
+# Security - Encryption Key (32 characters)
+
+### Trade-offs
+
+APP_DATA_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p63. **Access the application**
+
+- **Scheduler in-process:** Simple but not ideal for distributed systems (acceptable for single-instance)
+
+- **Data duplication:** Latest rates stored in both tables (performance over storage)
+
+- **Cache overhead:** Memory usage for LRU cache (acceptable given speed benefits)
+
+- **No committed keys:** Users add their own (security best practice, demonstrates integration feature)# Server- Frontend: http://localhost:3000### Frontend (React)
+
+
+
+---PORT=3001
+
+
+
+## AssumptionsNODE_ENV=production- Backend API: http://localhost:3001- **Integrations Management**: CRUD operations for external API configurations
+
+
+
+- Currency codes follow ISO 4217 standard (USD, EUR, GBP, etc.)```
+
+- Minimum polling interval: 60 seconds (respects free tier rate limits)
+
+- Timestamps stored in UTC- Health Check: http://localhost:3001/api/monitoring/health- **Rates Viewer**: Search, filter, and view current exchange rates
+
+- Historical data retained indefinitely
+
+- Single scheduler instance (no distributed coordination)### API Keys (User-Provided)
+
+
+- **Historical Charts**: Visualize rate trends using Chart.js
+
+API keys are NOT committed to the repository for security. Add them via the web interface:
+
+4. **Add your API integration**- **Currency Converter**: Real-time currency conversion
+
+1. Navigate to http://localhost:3000/integrations
+
+2. Click "Add Integration"- Navigate to http://localhost:3000/integrations- **Monitoring Dashboard**: System health and usage metrics
+
+3. Choose a provider:
+
+   - **ExchangeRate-API** (recommended, 1,500 free requests/month) - Get key at https://www.exchangerate-api.com/- Click "Add Integration"
+
+   - **Fixer.io** (100 requests/month, EUR base only) - Get key at https://fixer.io/
+
+   - **CurrencyLayer** (100 requests/month, USD base only) - Get key at https://currencylayer.com/- Select provider (e.g., ExchangeRate-API)### Database Schema
+
+   - **Mock Provider** (no API key needed, unlimited, perfect for testing)
+
+4. Enter your API key (encrypted with AES-256-CBC before storage)- Enter your API key- `integrations`: API integration configurations
+
+5. Set priority (1 = highest) and poll interval (e.g., 300 seconds)
+
+- Set priority and polling interval- `rates_latest`: Most recent exchange rates (fast lookups)
+
+**Note:** The `.env` file is gitignored. See `.env.example` for template.
+
+- Save- `rates_history`: Historical rate data for trend analysis
+
+---
+
+- `integration_usage`: API usage tracking and monitoring
+
+## Running Tests
+
+That's it! The scheduler will automatically start fetching rates every 5 minutes.
+
+### Backend Tests
+
+## 📋 Prerequisites
+
+```bash
+
+# Navigate to backend directory---
+
+cd backend
+
+- Docker and Docker Compose
+
+# Install dependencies (if not using Docker)
+
+npm install## 📋 Features- Node.js 18+ (for local development)
+
+
+
+# Run all tests- Git
+
+npm test
+
+### Core Functionality
+
+# Run with coverage report
+
+npm run test:coverage✅ **Multi-Provider Support** - Integrate with ExchangeRate-API, Fixer.io, CurrencyLayer, or Mock providers  ## 🚀 Quick Start
+
+```
+
+✅ **Automated Scheduling** - Fetch rates every 5 minutes with priority-based fallback  
+
+**Test Coverage:**
+
+- Integration providers (ExchangeRate-API, Fixer.io, CurrencyLayer, Mock)✅ **Real-Time Conversion** - Convert between 160+ currencies instantly  ### 1. Clone and Setup
+
+- Services (rates, integrations, scheduler, usage tracking)
+
+- Routes (REST API endpoints)✅ **Historical Charts** - Visualize rate trends over 7, 30, or 90 days  
+
+- Utilities (encryption, validation)
+
+✅ **Caching Layer** - Redis cache with in-memory LRU fallback  ```bash
+
+### Frontend Tests
+
+✅ **Health Monitoring** - Dashboard showing provider uptime and performance  # Clone the repository
+
+```bash
+
+# Navigate to frontend directorygit clone <your-repo-url>
+
+cd frontend
+
+### Securitycd assaignment
+
+# Install dependencies (if not using Docker)
+
+npm install🔒 **API Key Encryption** - AES-256-CBC encryption for stored credentials  
+
+
+
+# Run tests🔒 **Environment Variables** - Sensitive config never committed  # Copy environment variables
+
+npm test
+
+```🔒 **Input Validation** - All user inputs sanitized  copy .env.example .env
+
+
+
+---
+
+
+
+## API Endpoints### Architecture# Edit .env and set your encryption key (required)
+
+
+
+### Base URL🏗️ **Plugin System** - Easy to add new providers  # APP_DATA_KEY should be a 32-character string
+
+```
+
+http://localhost:3001/api🏗️ **Layered Design** - Routes → Services → Database  ```
+
+```
+
+🏗️ **Docker Compose** - One-command deployment  
+
+### 1. Rates Endpoints
+
+🏗️ **PostgreSQL** - Reliable data persistence  ### 2. Start with Docker Compose
+
+#### Get Latest Rates
+
+```http🏗️ **Redis Cache** - Fast rate lookups  
+
+GET /rates/latest?base=USD
+
+```bash
+
+Response:
+
+{---# Build and start all services
+
+  "success": true,
+
+  "data": {docker-compose up --build
+
+    "base": "USD",
+
+    "timestamp": "2025-10-20T14:00:00Z",## 🏛️ Architecture
+
+    "rates": {
+
+      "EUR": 0.85,# Or run in detached mode
+
+      "GBP": 0.73,
+
+      "JPY": 149.50,```docker-compose up -d --build
+
+      ...
+
+    }┌─────────────────┐```
+
+  }
+
+}│  React Frontend │ (Port 3000)
+
+```
+
+│   Tailwind CSS  │This will start:
+
+#### Convert Currency
+
+```http└────────┬────────┘- **Backend API**: http://localhost:3001
+
+GET /rates/convert?from=USD&to=EUR&amount=100
+
+         │ REST API- **Frontend UI**: http://localhost:3000
+
+Response:
+
+{         ▼- **PostgreSQL**: localhost:5432
+
+  "success": true,
+
+  "data": {┌─────────────────┐- **Redis**: localhost:6379
+
+    "from": "USD",
+
+    "to": "EUR",│ Express Backend │ (Port 3001)
+
+    "amount": 100,
+
+    "result": 85,│  - Scheduler    │### 3. Verify Installation
+
+    "rate": 0.85
+
+  }│  - Integrations │
 
 }
 
-**Test Coverage:**```
-
-- Integration providers (ExchangeRate-API, Fixer, CurrencyLayer, Mock)
-
-- Services (rates, integrations, scheduler, usage)#### Get Integration Usage
-
-- Routes (REST endpoints)```http
-
-- Utilities (encryption, validation)GET /api/integrations/:id/usage?days=30
+```│  - Services     │1. Open http://localhost:3000 in your browser
 
 
 
-### Frontend TestsResponse:
+#### Get Historical Rates└────────┬────────┘2. Go to "Integrations" and click "Add Integration"
+
+```http
+
+GET /rates/history?base=USD&target=EUR&days=7         │3. Create a test integration using the "Mock Provider"
+
+
+
+Response:    ┌────┴─────┐
 
 {
 
-```bash  "success": true,
+  "success": true,    ▼          ▼### 4. Stop Services
 
-cd frontend  "data": {
+  "data": [
 
-npm install    "today": {
+    {┌─────────┐ ┌────────┐
 
-npm test                    # Run React tests      "calls_made": 10,
+      "base": "USD",
 
-```      "calls_limit": 1500,
+      "target": "EUR",│PostgreSQL│ │ Redis  │```bash
 
-      "calls_remaining": 1490
+      "rate": 0.85,
 
----    },
+      "fetched_at": "2025-10-20T14:00:00Z"│  (5432) │ │ (6379) │docker-compose down
 
-    "history": [...]
+    },
 
-## 🔧 Development  }
+    ...└─────────┘ └────────┘
+
+  ]
+
+}```# To remove volumes (database data):
+
+```
+
+docker-compose down -v
+
+### 2. Integration Management Endpoints
+
+**See detailed documentation in `/docs`:**```
+
+#### List All Integrations
+
+```http- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design and data flows
+
+GET /integrations
+
+- [BACKEND.md](docs/BACKEND.md) - API routes and services## 🛠️ Development Setup
+
+Response:
+
+{- [FRONTEND.md](docs/FRONTEND.md) - React components and pages
+
+  "success": true,
+
+  "data": [- [DATABASE.md](docs/DATABASE.md) - Schema and migrations### Backend Development
+
+    {
+
+      "id": "uuid",- [TESTS.md](docs/TESTS.md) - Testing strategy
+
+      "name": "My ExchangeRate-API",
+
+      "provider": "exchangerate-api",```bash
+
+      "base_url": "https://v6.exchangerate-api.com",
+
+      "priority": 1,---cd backend
+
+      "poll_interval_seconds": 300,
+
+      "active": true,
+
+      "created_at": "2025-10-20T10:00:00Z"
+
+    }## 🔌 API Documentation# Install dependencies
+
+  ]
+
+}npm install
+
+```
+
+### Base URL
+
+#### Add New Integration
+
+```http```# Set up environment variables
+
+POST /integrations
+
+Content-Type: application/jsonhttp://localhost:3001/apicopy ..\.env.example .env
+
+
+
+{```
+
+  "name": "My Provider",
+
+  "provider": "exchangerate-api",# Run database migrations
+
+  "baseUrl": "https://v6.exchangerate-api.com",
+
+  "apiKey": "your-api-key-here",### Endpointsnpm run migrate
+
+  "priority": 1,
+
+  "pollIntervalSeconds": 300
 
 }
 
+#### Rates# Start development server (with auto-reload)
+
+Response:
+
+{```httpnpm run dev
+
+  "success": true,
+
+  "data": {GET /rates/latest?base=USD
+
+    "id": "uuid",
+
+    "name": "My Provider",# Response: { base: "USD", rates: { EUR: 0.85, GBP: 0.73, ... } }# Run tests
+
+    ...
+
+  }npm test
+
+}
+
+```GET /rates/convert?from=USD&to=EUR&amount=100
+
+
+
+#### Update Integration# Response: { from: "USD", to: "EUR", amount: 100, result: 85, rate: 0.85 }# Run tests with coverage
+
+```http
+
+PATCH /integrations/:idnpm run test:coverage
+
+Content-Type: application/json
+
+GET /rates/history?base=USD&days=7```
+
+{
+
+  "active": false,# Response: [{ date: "2025-10-20", rates: {...} }, ...]
+
+  "priority": 2
+
+}```### Frontend Development
+
+```
+
+
+
+#### Delete Integration
+
+```http#### Integrations```bash
+
+DELETE /integrations/:id
+
+``````httpcd frontend
+
+
+
+#### Get Supported ProvidersGET    /integrations              # List all providers
+
+```http
+
+GET /integrations/providersPOST   /integrations              # Add new provider# Install dependencies
+
+
+
+Response:GET    /integrations/:id          # Get one providernpm install
+
+{
+
+  "success": true,PATCH  /integrations/:id          # Update provider
+
+  "data": [
+
+    {DELETE /integrations/:id          # Remove provider# Start development server
+
+      "name": "exchangerate-api",
+
+      "displayName": "ExchangeRate-API",GET    /integrations/providers    # Supported provider typesnpm start
+
+      "defaultBaseUrl": "https://v6.exchangerate-api.com",
+
+      "freeTierLimit": 1500,```
+
+      "description": "Best free tier with 1,500 requests/month"
+
+    },# Run tests
+
+    ...
+
+  ]#### Monitoringnpm test
+
+}
+
+``````http
+
+
+
+### 3. Monitoring EndpointsGET /monitoring/health            # System health check# Build for production
+
+
+
+#### System Health CheckGET /monitoring/stats             # Provider statisticsnpm run build
+
+```http
+
+GET /monitoring/healthGET /monitoring/usage             # Conversion logs```
+
+
+
+Response:```
+
+{
+
+  "success": true,## 📚 API Documentation
+
+  "data": {
+
+    "database": "connected",---
+
+    "redis": "connected",
+
+    "scheduler": {### Base URL
+
+      "status": "running",
+
+      "lastUpdate": "2025-10-20T14:00:00Z"## 🗄️ Database Schema```
+
+    }
+
+  }http://localhost:3001/api
+
+}
+
+```### Tables```
+
+
+
+#### Provider Statistics
+
+```http
+
+GET /monitoring/stats**integrations** - API provider configurations### Integrations Endpoints
+
+
+
+Response:```sql
+
+{
+
+  "success": true,- id, name, provider, base_url, api_key (encrypted)#### Get All Integrations
+
+  "data": [
+
+    {- priority, poll_interval_seconds, active```http
+
+      "integration_id": "uuid",
+
+      "name": "My Provider",- created_at, updated_atGET /api/integrations
+
+      "total_requests": 150,
+
+      "successful_requests": 148,```Query Parameters:
+
+      "failed_requests": 2,
+
+      "success_rate": 98.67,  - active: boolean (filter by active status)
+
+      "avg_response_time_ms": 245
+
+    }**rates_latest** - Current exchange rates  - provider: string (filter by provider)
+
+  ]
+
+}```sql
+
+```
+
+- id, base_currency, target_currency, rateResponse:
+
+#### Usage Logs
+
+```http- integration_id, fetched_at{
+
+GET /monitoring/usage?limit=50
+
+```  "success": true,
+
+Response:
+
+{  "data": [
+
+  "success": true,
+
+  "data": [**rates_history** - Historical rates for charting    {
+
+    {
+
+      "integration_id": "uuid",```sql      "id": "uuid",
+
+      "base_currency": "USD",
+
+      "success": true,- Same as rates_latest (append-only)      "name": "My API",
+
+      "response_time_ms": 234,
+
+      "created_at": "2025-10-20T14:00:00Z"```      "provider": "exchangerate-api",
+
+    },
+
+    ...      "base_url": "https://...",
+
+  ]
+
+}**rate_requests** - API call logs      "priority": 100,
+
+```
+
+```sql      "poll_interval_seconds": 300,
+
+---
+
+- id, integration_id, base_currency      "active": true,
+
+## Accessing the Frontend
+
+- success, response_time_ms, error_message      "created_at": "2024-01-01T00:00:00Z",
+
+### Integration Management
+
+- **URL:** http://localhost:3000/integrations```      "updated_at": "2024-01-01T00:00:00Z"
+
+- **Purpose:** Add, edit, delete, and monitor exchange rate providers
+
+- **Features:**    }
+
+  - Add new API integrations with encrypted key storage
+
+  - Set provider priority for fallback chain**conversions** - User conversion tracking  ],
+
+  - Configure polling intervals
+
+  - Toggle integrations active/inactive```sql  "count": 1
+
+  - View provider status and health
+
+- id, from_currency, to_currency, amount}
+
+### Rate Viewing
+
+- **URL:** http://localhost:3000/ (Dashboard)- result, rate_used, created_at```
+
+- **Purpose:** View latest exchange rates
+
+- **Features:**```
+
+  - Real-time rate display for 160+ currencies
+
+  - Select base currency (USD, EUR, GBP, JPY)#### Create Integration
+
+  - Search and filter currencies
+
+  - Auto-refresh every 30 seconds---```http
+
+
+
+### Currency ConverterPOST /api/integrations
+
+- **URL:** http://localhost:3000/convert
+
+- **Purpose:** Convert amounts between currencies## ⚙️ Environment VariablesContent-Type: application/json
+
+- **Features:**
+
+  - Input amount and select currencies
+
+  - Instant conversion
+
+  - Swap currencies button### Required Variables{
+
+  - View current exchange rate
+
+  "name": "My Exchange Rate API",
+
+### Historical Charts
+
+- **URL:** http://localhost:3000/historyCreate a `.env` file in the root directory (or use docker-compose defaults):  "provider": "exchangerate-api",
+
+- **Purpose:** Visualize rate trends over time
+
+- **Features:**  "base_url": "https://v6.exchangerate-api.com",
+
+  - Interactive line charts
+
+  - Date range selector (7, 30, 90 days)```env  "api_key": "your-api-key",
+
+  - Min/Max/Average statistics
+
+  - Period change percentage# Database  "priority": 100,
+
+  - Hover for exact values
+
+DATABASE_HOST=postgres  "poll_interval_seconds": 300,
+
+### Monitoring Dashboard
+
+- **URL:** http://localhost:3000/monitoringDATABASE_PORT=5432  "active": true
+
+- **Purpose:** System health and performance metrics
+
+- **Features:**DATABASE_NAME=currency_exchange}
+
+  - Provider uptime and success rates
+
+  - API call logsDATABASE_USER=postgres
+
+  - Response time graphs
+
+  - Error trackingDATABASE_PASSWORD=your-secure-passwordResponse: 201 Created
+
+  - Scheduler status
+
+{
+
+---
+
+# Redis  "success": true,
+
+## Design Decisions
+
+REDIS_HOST=redis  "data": { /* integration object */ },
+
+### 1. Plugin-Based Architecture
+
+- **Decision:** Factory pattern for exchange rate providersREDIS_PORT=6379  "message": "Integration created successfully"
+
+- **Rationale:** Easy to add new providers without modifying core code. Each provider encapsulates its own API logic.
+
+- **Trade-off:** Slightly more complex than hardcoding, but much more maintainable.}
+
+
+
+### 2. Automated Scheduler# Security```
+
+- **Decision:** Built-in Node.js scheduler instead of external cron
+
+- **Rationale:** Platform-independent, easier to debug, can be triggered via APIAPP_DATA_KEY=your-32-character-encryption-key
+
+- **Trade-off:** Runs in application process (not ideal for distributed systems, but fine for single-instance deployment)
+
+#### Update Integration
+
+### 3. Priority-Based Fallback
+
+- **Decision:** Try providers in priority order until one succeeds# Server```http
+
+- **Rationale:** Handles API outages gracefully, maximizes uptime
+
+- **Trade-off:** Slower when primary provider fails (waits for timeout), but ensures data availabilityPORT=3001PUT /api/integrations/:id
+
+
+
+### 4. Redis Cache with In-Memory FallbackNODE_ENV=productionContent-Type: application/json
+
+- **Decision:** Two-tier caching (Redis → LRU in-memory)
+
+- **Rationale:** Fast lookups (sub-millisecond), graceful degradation if Redis fails```
+
+- **Trade-off:** Memory usage for cache, cache invalidation complexity
+
+{
+
+### 5. Separate Latest/History Tables
+
+- **Decision:** `rates_latest` for current rates, `rates_history` for time-series data**Note:** The `.env` file is gitignored. See `.env.example` for template.  "name": "Updated Name",
+
+- **Rationale:** `rates_latest` stays small (fast queries), `rates_history` optimized for range scans
+
+- **Trade-off:** Data duplication, but significant performance gain  "priority": 50,
+
+
+
+### 6. API Key Encryption---  "active": false
+
+- **Decision:** AES-256-CBC encryption for stored API keys
+
+- **Rationale:** Database compromise doesn't leak keys, follows security best practices}
+
+- **Trade-off:** Decryption overhead on every API call (negligible ~1ms)
+
+## 🧪 Testing```
+
+### 7. Docker Compose for Deployment
+
+- **Decision:** Multi-container orchestration with docker-compose
+
+- **Rationale:** One-command setup, consistent environments, easy for evaluators
+
+- **Trade-off:** Not production-ready (use Kubernetes for scale), but perfect for development/demo### Backend Tests#### Delete Integration (Soft Delete)
+
+
+
+### 8. No Real API Keys Committed```http
+
+- **Decision:** `.env` file gitignored, demo credentials in docker-compose
+
+- **Rationale:** Security best practice, prevents API key leakage```bashDELETE /api/integrations/:id
+
+- **Trade-off:** Evaluators must add their own keys (but this demonstrates the integration feature)
+
+cd backend
+
+---
+
+npm installResponse: 200 OK
+
+## Assumptions
+
+npm test                    # Run all tests{
+
+1. **Currency Codes:** ISO 4217 standard (3-letter codes like USD, EUR, GBP)
+
+2. **Rate Precision:** Stored as NUMERIC(20,10) for high precision financial calculationsnpm run test:coverage       # Generate coverage report  "success": true,
+
+3. **Polling Interval:** Minimum 60 seconds to respect free tier rate limits
+
+4. **Base Currencies:** Scheduler fetches USD, EUR, GBP, JPY (configurable in code)```  "message": "Integration deactivated successfully"
+
+5. **Historical Data:** Kept indefinitely (production systems would archive/delete old data)
+
+6. **Time Zone:** All timestamps stored as UTC (TIMESTAMPTZ in PostgreSQL)}
+
+7. **Concurrent Requests:** Single scheduler instance (scale with leader election in production)
+
+8. **Provider Availability:** At least one active provider with valid API key for live data**Test Coverage:**```
+
+
+
+---- Integration providers (ExchangeRate-API, Fixer, CurrencyLayer, Mock)
+
+
+
+## Troubleshooting- Services (rates, integrations, scheduler, usage)#### Get Integration Usage
+
+
+
+### Services Not Starting- Routes (REST endpoints)```http
+
+```bash
+
+# Check container status- Utilities (encryption, validation)GET /api/integrations/:id/usage?days=30
+
+docker-compose ps
+
+
+
+# View logs
+
+docker-compose logs backend### Frontend TestsResponse:
+
+docker-compose logs frontend
+
+{
+
+# Restart services
+
+docker-compose restart```bash  "success": true,
+
+```
+
+cd frontend  "data": {
+
+### No Rates Displaying
+
+1. Check if scheduler is running: `curl http://localhost:3001/api/monitoring/health`npm install    "today": {
+
+2. Verify integration is active with valid API key
+
+3. Wait 5 minutes for first scheduler runnpm test                    # Run React tests      "calls_made": 10,
+
+4. Check backend logs: `docker-compose logs backend`
+
+```      "calls_limit": 1500,
+
+### Database Connection Failed
+
+```bash      "calls_remaining": 1490
+
+# Verify PostgreSQL is running
+
+docker ps | grep postgres---    },
+
+
+
+# Check password matches in docker-compose.yml and backend environment    "history": [...]
+
+```
+
+## 🔧 Development  }
+
+---
+
+}
+
+## License
+
 ### Local Development (Without Docker)```
+
+This project is created for educational purposes as part of a technical assessment.
 
 
 
@@ -821,176 +1657,3 @@ REDIS_HOST=redis
 - Better index performance on both## 🔧 Configuration
 
 
-
----### Integration Polling
-
-Configure per-integration in the UI or via API:
-
-## 📝 License- `poll_interval_seconds`: 60-3600 seconds
-
-- Default: 300 seconds (5 minutes)
-
-This project is created for educational purposes as part of a technical assessment.
-
-### Priority & Failover
-
----- Lower priority number = higher priority
-
-- On failure, automatically tries next priority integration
-
-## 👥 Contributing- Configurable retry with exponential backoff
-
-
-
-This is an assignment project, but suggestions are welcome:### Supported Providers
-
-1. **ExchangeRate-API** (1,500 req/month free)
-
-1. Fork the repository2. **Fixer.io** (100 req/month free, EUR base only)
-
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)3. **CurrencyLayer** (100 req/month free, USD base only)
-
-3. Commit your changes (`git commit -m 'Add amazing feature'`)4. **Mock Provider** (testing only)
-
-4. Push to the branch (`git push origin feature/amazing-feature`)
-
-5. Open a Pull Request## 📊 Monitoring & Alerting
-
-
-
----### Built-in Monitoring
-
-- System health endpoint
-
-## 🆘 Support- Scheduler status
-
-- Per-integration usage metrics
-
-For issues or questions:- Error tracking
-
-- Check the [documentation](docs/)
-
-- Review API logs: `docker-compose logs backend`### Alert Stub
-
-- Test health endpoint: `curl http://localhost:3001/api/monitoring/health`The system logs warnings when integration usage exceeds 90% of limits. In production, configure this to send alerts to:
-
-- Email notifications
-
----- Slack webhooks
-
-- PagerDuty
-
-**Built with ❤️ using Node.js, React, PostgreSQL, and Redis**- Custom monitoring services
-
-
-Example implementation location: `backend/src/services/scheduler.js` (line ~150)
-
-## 🐛 Troubleshooting
-
-### Redis Connection Issues
-If Redis is unavailable, the system automatically falls back to in-memory LRU cache:
-```
-Redis unavailable, using in-memory cache fallback
-```
-
-### Database Migration Errors
-```bash
-# Manually run migrations
-docker-compose exec backend npm run migrate
-
-# Reset database (WARNING: deletes all data)
-docker-compose down -v
-docker-compose up -d
-```
-
-### Integration Fetch Failures
-1. Check integration is active
-2. Verify API key is correct
-3. Check base_url is valid
-4. Review usage limits
-5. Check logs: `docker-compose logs backend`
-
-## 📈 Performance Considerations
-
-### Caching Strategy
-- Latest rates cached in Redis (1-hour TTL)
-- Historical data queries hit database
-- In-memory fallback for Redis downtime
-
-### Scaling
-- Backend is stateless (safe to run multiple instances)
-- Database connection pooling (max 20 connections)
-- Consider read replicas for heavy read workloads
-- Use Redis cluster for high availability
-
-## 🎓 Design Decisions
-
-### Why Plugin Architecture?
-- Easy to add new provider integrations
-- Common interface ensures consistency
-- Retry logic and error handling abstracted
-
-### Why Both Redis and Database?
-- Redis: Ultra-fast reads for latest rates
-- PostgreSQL: Persistent storage and historical analysis
-- In-memory fallback ensures availability
-
-### Why Soft Delete?
-- Preserves historical data integrity
-- Allows recovery of accidentally deleted integrations
-- Maintains foreign key relationships
-
-## 📝 Development Roadmap
-
-### Completed
-✅ Multi-provider integration system
-✅ Scheduler with configurable polling
-✅ Redis caching with fallback
-✅ REST API with full CRUD
-✅ React admin UI
-✅ Docker containerization
-✅ CI/CD pipeline
-✅ API key encryption
-✅ Basic testing suite
-
-### Future Enhancements
-- [ ] WebSocket support for real-time rate updates
-- [ ] Advanced alerting (email, Slack, PagerDuty)
-- [ ] Rate calculation with multiple providers (averaging)
-- [ ] API rate limiting
-- [ ] User authentication and role-based access
-- [ ] More integration providers
-- [ ] Enhanced monitoring dashboard
-- [ ] Export rates to CSV/Excel
-
-## 👥 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-ISC License - see LICENSE file for details
-
-## 🆘 Support
-
-For issues and questions:
-- Open an issue on GitHub
-- Check existing documentation
-- Review API logs: `docker-compose logs -f backend`
-
-## 🎉 Acknowledgments
-
-Built as part of a technical assessment demonstrating:
-- Full-stack development skills
-- System architecture and design
-- DevOps and containerization
-- Testing and CI/CD practices
-- Documentation and code quality
-
----
-
-**Happy Rate Hunting! 💱**

@@ -1,6 +1,7 @@
 import { query } from '../config/database.js';
 import { getCacheClient } from '../config/redis.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { logConversion } from './usageService.js';
 import { validateCurrencyCode, validateDate } from '../utils/validation.js';
 
 /**
@@ -189,7 +190,7 @@ export async function convertCurrency(from, to, amount) {
 
   const { rate, fetched_at } = result.rows[0];
 
-  return {
+  const convertedResult = {
     from: from.toUpperCase(),
     to: to.toUpperCase(),
     amount: amountNum,
@@ -197,6 +198,17 @@ export async function convertCurrency(from, to, amount) {
     rate: parseFloat(rate),
     timestamp: fetched_at
   };
+
+  // Log the conversion (don't await to avoid slowing down response)
+  logConversion(
+    convertedResult.from,
+    convertedResult.to,
+    convertedResult.amount,
+    convertedResult.result,
+    convertedResult.rate
+  ).catch(err => console.warn('Failed to log conversion:', err.message));
+
+  return convertedResult;
 }
 
 /**
