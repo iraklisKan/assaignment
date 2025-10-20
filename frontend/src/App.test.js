@@ -4,7 +4,6 @@
  */
 
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
 // Mock child components to isolate App tests
@@ -28,11 +27,8 @@ jest.mock('./pages/MonitoringPage', () => {
 
 describe('App Component', () => {
   const renderApp = () => {
-    return render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
+    // App already has BrowserRouter internally, no need to wrap it
+    return render(<App />);
   };
 
   it('renders without crashing', () => {
@@ -43,9 +39,11 @@ describe('App Component', () => {
   it('displays navigation links', () => {
     renderApp();
     
-    expect(screen.getByText(/Rates/i)).toBeInTheDocument();
-    expect(screen.getByText(/Integrations/i)).toBeInTheDocument();
-    expect(screen.getByText(/Monitoring/i)).toBeInTheDocument();
+    // Check for navigation links by looking within the nav element
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveTextContent(/Exchange Rates/i);
+    expect(nav).toHaveTextContent(/Integrations/i);
+    expect(nav).toHaveTextContent(/Monitoring/i);
   });
 
   it('has correct layout structure', () => {
