@@ -5,6 +5,36 @@ import { logConversion } from './usageService.js';
 import { validateCurrencyCode, validateDate } from '../utils/validation.js';
 
 /**
+ * Calculate data freshness and add warning if stale
+ */
+function addDataFreshnessInfo(result, timestamp) {
+  const now = new Date();
+  const dataTime = new Date(timestamp);
+  const ageMinutes = Math.floor((now - dataTime) / 1000 / 60);
+  
+  // Add age information
+  result.dataAgeMinutes = ageMinutes;
+  
+  // Add human-readable age
+  if (ageMinutes < 1) {
+    result.dataAge = 'just now';
+  } else if (ageMinutes < 60) {
+    result.dataAge = `${ageMinutes} minute${ageMinutes > 1 ? 's' : ''} ago`;
+  } else {
+    const ageHours = Math.floor(ageMinutes / 60);
+    result.dataAge = `${ageHours} hour${ageHours > 1 ? 's' : ''} ago`;
+  }
+  
+  // Add warning if data is stale (older than 1 hour)
+  if (ageMinutes > 60) {
+    result.stale = true;
+    result.warning = 'Exchange rate data may be outdated. Please check if integrations are active.';
+  }
+  
+  return result;
+}
+
+/**
  * Get list of available currencies
  */
 export async function getAvailableCurrencies() {
@@ -162,7 +192,7 @@ export async function convertCurrency(from, to, amount) {
     const cached = await cache.get(`rates:${pair}`);
     if (cached) {
       const data = JSON.parse(cached);
-      return {
+      const result = {
         from: from.toUpperCase(),
         to: to.toUpperCase(),
         amount: amountNum,
@@ -170,6 +200,7 @@ export async function convertCurrency(from, to, amount) {
         rate: data.rate,
         timestamp: data.fetched_at
       };
+      return addDataFreshnessInfo(result, data.fetched_at);
     }
   } catch (error) {
     console.warn('Cache read error:', error.message);
@@ -215,6 +246,9 @@ export async function convertCurrency(from, to, amount) {
           crossRate: true
         };
         
+        // Add freshness info (cross-rate uses current timestamp, so always fresh)
+        addDataFreshnessInfo(convertedResult, new Date());
+        
         // Log the conversion
         logConversion(
           convertedResult.from,
@@ -241,6 +275,9 @@ export async function convertCurrency(from, to, amount) {
     rate: parseFloat(rate),
     timestamp: fetched_at
   };
+
+  // Add data freshness information
+  addDataFreshnessInfo(convertedResult, fetched_at);
 
   // Log the conversion (don't await to avoid slowing down response)
   logConversion(
