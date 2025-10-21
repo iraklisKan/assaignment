@@ -136,8 +136,24 @@ class RateScheduler {
     const startTime = Date.now();
     console.log(`Fetching rates from ${integrationConfig.name}...`);
 
-    // Define base currencies to fetch
-    const baseCurrencies = ['USD', 'EUR', 'GBP', 'JPY'];
+    // Get base currencies from environment variable or use default
+    let baseCurrencies = ['USD', 'EUR', 'GBP', 'JPY']; // Default
+    
+    if (process.env.BASE_CURRENCIES) {
+      const envValue = process.env.BASE_CURRENCIES.trim().toUpperCase();
+      
+      if (envValue === 'ALL') {
+        // Fetch ALL available currencies as base
+        // Note: This will make A LOT of API calls! Only use with sufficient API quota
+        console.log('⚠️  Fetching ALL currencies as base - high API usage!');
+        baseCurrencies = await this.getAllAvailableCurrencies();
+      } else {
+        // Parse comma-separated list
+        baseCurrencies = envValue.split(',').map(c => c.trim()).filter(c => c.length > 0);
+      }
+    }
+    
+    console.log(`  Base currencies: ${baseCurrencies.join(', ')} (${baseCurrencies.length} total)`);
 
     try {
       const integration = createIntegration(integrationConfig);
@@ -218,6 +234,35 @@ class RateScheduler {
       await recordError(integrationConfig.id, error.message);
 
       // In production, emit to monitoring/alerting system
+    }
+  }
+
+  /**
+   * Get all available currencies from the database
+   */
+  async getAllAvailableCurrencies() {
+    try {
+      const pool = (await import('../config/database.js')).default;
+      
+      // Get unique currencies from rates_latest table
+      const result = await pool.query(`
+        SELECT DISTINCT base AS currency FROM rates_latest
+        UNION
+        SELECT DISTINCT target AS currency FROM rates_latest
+        ORDER BY currency
+      `);
+      
+      const currencies = result.rows.map(row => row.currency);
+      
+      if (currencies.length === 0) {
+        console.warn('No currencies found in database, falling back to default list');
+        return ['USD', 'EUR', 'GBP', 'JPY'];
+      }
+      
+      return currencies;
+    } catch (error) {
+      console.error('Error fetching currencies from database:', error.message);
+      return ['USD', 'EUR', 'GBP', 'JPY']; // Fallback
     }
   }
 
