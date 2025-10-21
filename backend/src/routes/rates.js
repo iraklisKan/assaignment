@@ -18,6 +18,19 @@ router.get('/currencies', asyncHandler(async (req, res) => {
 }));
 
 /**
+ * GET /api/rates/base-currencies
+ * Get list of configured base currencies (from BASE_CURRENCIES env var)
+ */
+router.get('/base-currencies', asyncHandler(async (req, res) => {
+  const baseCurrencies = await ratesService.getConfiguredBaseCurrencies();
+  
+  res.json({
+    success: true,
+    baseCurrencies
+  });
+}));
+
+/**
  * GET /api/rates
  * Get latest exchange rates
  */

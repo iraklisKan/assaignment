@@ -52,6 +52,28 @@ export async function getAvailableCurrencies() {
 }
 
 /**
+ * Get list of configured base currencies from environment variable
+ */
+export async function getConfiguredBaseCurrencies() {
+  // Get base currencies from environment variable
+  let baseCurrencies = ['USD', 'EUR', 'GBP', 'JPY']; // Default
+  
+  if (process.env.BASE_CURRENCIES) {
+    const envValue = process.env.BASE_CURRENCIES.trim().toUpperCase();
+    
+    if (envValue === 'ALL') {
+      // Return all available currencies from database
+      return await getAvailableCurrencies();
+    } else {
+      // Parse comma-separated list
+      baseCurrencies = envValue.split(',').map(c => c.trim()).filter(c => c.length > 0);
+    }
+  }
+  
+  return baseCurrencies;
+}
+
+/**
  * Get latest rates from cache or database
  */
 export async function getLatestRates(filters = {}) {

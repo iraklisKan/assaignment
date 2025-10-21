@@ -8,6 +8,7 @@ const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 function RatesPage() {
   // Use all available currencies from the backend (fetched dynamically)
   const [currencies, setCurrencies] = useState([]);
+  const [baseCurrencies, setBaseCurrencies] = useState([]); // Configured base currencies
   const [baseCurrency, setBaseCurrency] = useState('USD');
   const [rates, setRates] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -29,18 +30,33 @@ function RatesPage() {
   useEffect(() => {
     const fetchCurrencies = async () => {
       try {
-        const response = await axios.get(`${API_BASE}/api/rates/currencies`);
-        setCurrencies(response.data.currencies || []);
+        // Fetch all currencies for the converter dropdowns
+        const currenciesResponse = await axios.get(`${API_BASE}/api/rates/currencies`);
+        setCurrencies(currenciesResponse.data.currencies || []);
+        
+        // Fetch configured base currencies for the base currency dropdown
+        const baseCurrenciesResponse = await axios.get(`${API_BASE}/api/rates/base-currencies`);
+        const configuredBases = baseCurrenciesResponse.data.baseCurrencies || [];
+        setBaseCurrencies(configuredBases);
         
         // Set initial defaults if currencies are available
-        if (response.data.currencies?.length > 0) {
-          const codes = response.data.currencies;
-          if (codes.includes('USD')) setBaseCurrency('USD');
+        if (currenciesResponse.data.currencies?.length > 0) {
+          const codes = currenciesResponse.data.currencies;
+          if (codes.includes('USD')) {
+            setBaseCurrency('USD');
+            setFromCurrency('USD');
+          } else if (configuredBases.length > 0) {
+            // If USD not available, use first configured base currency
+            setBaseCurrency(configuredBases[0]);
+            setFromCurrency(configuredBases[0]);
+          }
           if (codes.includes('EUR')) setToCurrency('EUR');
         }
       } catch (err) {
         const errorMsg = err.response?.data?.error?.message || err.message || 'Failed to fetch currencies';
         console.error('Failed to fetch currencies:', errorMsg);
+        // Fallback to defaults if API fails
+        setBaseCurrencies(['USD', 'EUR', 'GBP', 'JPY']);
       }
     };
 
@@ -261,7 +277,7 @@ function RatesPage() {
                   onChange={(e) => setBaseCurrency(e.target.value)}
                   className="w-24"
                 >
-                  {currencies.map((currency) => (
+                  {baseCurrencies.map((currency) => (
                     <option key={currency} value={currency}>
                       {currency}
                     </option>
