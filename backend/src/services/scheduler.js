@@ -1,24 +1,17 @@
 /*
  * =============================================================================
- * RATE SCHEDULER - THE HEART OF THE SYSTEM
+ * RATE SCHEDULER 
  * =============================================================================
- * This is the engine that automatically fetches exchange rates from all 
- * active integrations on a schedule. Think of it as a robot that wakes up
- * every X seconds and asks each API provider for the latest rates.
- * 
- * How it works:
- * 1. Loads all active integrations from database (with decrypted API keys)
- * 2. Creates a timer for each integration based on their poll interval
- * 3. When timer fires, fetch rates for USD, EUR, GBP, and JPY
- * 4. Store all rates in database and cache them in Redis
- * 5. Track API usage and errors
- * 6. Repeat forever (or until stopped)
- * 
- * Smart features:
- * - Automatically picks up new integrations without restart
- * - Handles API failures gracefully (retries, error logging)
- * - Monitors API usage to warn when approaching limits
- * - Can be triggered manually for immediate updates
+ * This engine automatically fetches exchange rates from all active integrations
+ * on a schedule. It dynamically adapts to your integration and provider setup.
+ *
+ * How it works (current design):
+ * 1. Loads all active integrations from the database (with decrypted API keys)
+ * 2. Creates a timer for each integration based on its poll interval
+ * 3. When a timer fires, fetches ALL available rates/currencies supported by the provider
+ * 4. Stores all rates in the database and caches them in Redis
+ * 5. Tracks API usage and errors
+ * 6. Repeats forever (or until stopped)
  * =============================================================================
  */
 
@@ -57,14 +50,14 @@ class RateScheduler {
   stop() {
     console.log('Stopping rate scheduler...');
     this.isRunning = false;
-    
+
     // Cancel all timers
     for (const [integrationId, job] of this.jobs) {
       if (job.task) {
         clearInterval(job.task);
       }
     }
-    
+
     this.jobs.clear();
   }
 
@@ -73,7 +66,7 @@ class RateScheduler {
     try {
       // Fetch all active integrations with their decrypted API keys
       const integrations = await getActiveIntegrationsWithKeys();
-      
+
       // Clean up: Remove jobs for integrations that were deleted or deactivated
       for (const [integrationId, job] of this.jobs) {
         const stillActive = integrations.find(i => i.id === integrationId);
@@ -89,7 +82,7 @@ class RateScheduler {
       // Add or update jobs for all active integrations
       for (const integration of integrations) {
         const existingJob = this.jobs.get(integration.id);
-        
+
         // If the poll interval changed, restart the job with new timing
         if (existingJob && existingJob.interval !== integration.poll_interval_seconds) {
           console.log(`Updating job for integration ${integration.name}`);
@@ -132,7 +125,7 @@ class RateScheduler {
    */
   async triggerFetch(integrationId) {
     const job = this.jobs.get(integrationId);
-    
+
     if (!job) {
       throw new Error('Integration not found or not scheduled');
     }
