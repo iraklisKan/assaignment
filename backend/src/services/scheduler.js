@@ -24,9 +24,7 @@
 
 import cron from 'node-cron';
 import { getActiveIntegrationsWithKeys } from '../services/integrationService.js';
-import { updateLatestRate, saveRateHistory } from '../services/ratesService.js';
-import { recordUsage, recordError, logRequest } from '../services/usageService.js';
-import { createIntegration } from '../integrations/index.js';
+import { fetchAndStoreRates } from './schedulerTasks.js';
 
 class RateScheduler {
   constructor() {
@@ -115,11 +113,11 @@ class RateScheduler {
     const intervalMs = integrationConfig.poll_interval_seconds * 1000;
 
     // Run immediately
-    this.fetchAndStoreRates(integrationConfig);
+    fetchAndStoreRates(integrationConfig);
 
     // Schedule recurring task
     const task = setInterval(() => {
-      this.fetchAndStoreRates(integrationConfig);
+      fetchAndStoreRates(integrationConfig);
     }, intervalMs);
 
     this.jobs.set(integrationConfig.id, {
@@ -127,143 +125,6 @@ class RateScheduler {
       interval: integrationConfig.poll_interval_seconds,
       task
     });
-  }
-
-  /**
-   * Fetch rates from integration and store in DB/cache
-   */
-  async fetchAndStoreRates(integrationConfig) {
-    const startTime = Date.now();
-    console.log(`Fetching rates from ${integrationConfig.name}...`);
-
-    // Get base currencies from environment variable or use default
-    let baseCurrencies = ['USD', 'EUR', 'GBP', 'JPY']; // Default
-    
-    if (process.env.BASE_CURRENCIES) {
-      const envValue = process.env.BASE_CURRENCIES.trim().toUpperCase();
-      
-      if (envValue === 'ALL') {
-        // Fetch ALL available currencies as base
-        // Note: This will make A LOT of API calls! Only use with sufficient API quota
-        console.log('⚠️  Fetching ALL currencies as base - high API usage!');
-        baseCurrencies = await this.getAllAvailableCurrencies();
-      } else {
-        // Parse comma-separated list
-        baseCurrencies = envValue.split(',').map(c => c.trim()).filter(c => c.length > 0);
-      }
-    }
-    
-    console.log(`  Base currencies: ${baseCurrencies.join(', ')} (${baseCurrencies.length} total)`);
-
-    try {
-      const integration = createIntegration(integrationConfig);
-      let totalUpdatedCount = 0;
-
-      // Fetch rates for each base currency
-      for (const baseCurrency of baseCurrencies) {
-        const requestStartTime = Date.now();
-        
-        try {
-          // Fetch rates (with retry logic built into integration)
-          const rateData = await integration.fetchLatestRates({ base: baseCurrency });
-          const responseTime = Date.now() - requestStartTime;
-          
-          // Log successful request
-          await logRequest(integrationConfig.id, baseCurrency, true, responseTime);
-          
-          if (!rateData || !rateData.rates) {
-            console.warn(`Invalid rate data received for base ${baseCurrency}`);
-            continue;
-          }
-
-          // Store rates
-          const { base, rates } = rateData;
-          let updatedCount = 0;
-
-          for (const [targetCurrency, rate] of Object.entries(rates)) {
-            if (base === targetCurrency) continue; // Skip same currency
-            
-            try {
-              // Update latest rate and cache
-              await updateLatestRate(base, targetCurrency, rate, integrationConfig.id);
-              
-              // Save to history
-              await saveRateHistory(base, targetCurrency, rate, integrationConfig.id);
-              
-              updatedCount++;
-            } catch (error) {
-              console.error(`Error storing rate ${base}-${targetCurrency}:`, error.message);
-            }
-          }
-
-          totalUpdatedCount += updatedCount;
-          console.log(`  ✓ Stored ${updatedCount} rates for base ${baseCurrency} (${responseTime}ms)`);
-
-        } catch (error) {
-          const responseTime = Date.now() - requestStartTime;
-          
-          // Log failed request
-          await logRequest(integrationConfig.id, baseCurrency, false, responseTime, error.message);
-          
-          console.error(`  ✗ Error fetching ${baseCurrency} rates:`, error.message);
-          // Continue with other base currencies
-        }
-      }
-
-      // Get usage metrics
-      const metrics = await integration.getUsageMetrics();
-      await recordUsage(integrationConfig.id, baseCurrencies.length, metrics);
-
-      const duration = Date.now() - startTime;
-      console.log(`✓ Fetched ${totalUpdatedCount} total rates from ${integrationConfig.name} in ${duration}ms`);
-
-      // Alert if usage is high
-      if (metrics.callsRemaining !== null && metrics.limit !== null) {
-        const usagePercent = ((metrics.limit - metrics.callsRemaining) / metrics.limit) * 100;
-        if (usagePercent >= 90) {
-          console.warn(`⚠ Alert: ${integrationConfig.name} usage at ${usagePercent.toFixed(1)}%`);
-          // In production, emit to monitoring/alerting system
-        }
-      }
-
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      console.error(`✗ Error fetching from ${integrationConfig.name} after ${duration}ms:`, error.message);
-      
-      // Record error
-      await recordError(integrationConfig.id, error.message);
-
-      // In production, emit to monitoring/alerting system
-    }
-  }
-
-  /**
-   * Get all available currencies from the database
-   */
-  async getAllAvailableCurrencies() {
-    try {
-      const pool = (await import('../config/database.js')).default;
-      
-      // Get unique currencies from rates_latest table
-      const result = await pool.query(`
-        SELECT DISTINCT base AS currency FROM rates_latest
-        UNION
-        SELECT DISTINCT target AS currency FROM rates_latest
-        ORDER BY currency
-      `);
-      
-      const currencies = result.rows.map(row => row.currency);
-      
-      if (currencies.length === 0) {
-        console.warn('No currencies found in database, falling back to default list');
-        return ['USD', 'EUR', 'GBP', 'JPY'];
-      }
-      
-      return currencies;
-    } catch (error) {
-      console.error('Error fetching currencies from database:', error.message);
-      return ['USD', 'EUR', 'GBP', 'JPY']; // Fallback
-    }
   }
 
   /**
@@ -276,7 +137,7 @@ class RateScheduler {
       throw new Error('Integration not found or not scheduled');
     }
 
-    await this.fetchAndStoreRates(job.integration);
+    await fetchAndStoreRates(job.integration);
   }
 
   /**
