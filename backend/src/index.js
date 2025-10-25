@@ -43,8 +43,13 @@ app.use(notFoundHandler);
 // Error handler
 app.use(errorHandler);
 
-// Initialize services
-async function startServer() {
+/**
+ * Initialize and start the server
+ * Initializes Redis, starts the scheduler, and starts the Express server
+ * @async
+ * @returns {Promise<void>}
+ */
+const startServer = async () => {
   try {
     console.log('Initializing Currency Exchange Rate Hub...');
     
@@ -64,10 +69,15 @@ async function startServer() {
     console.error('Failed to start server:', error);
     process.exit(1);
   }
-}
+};
 
-// Graceful shutdown
-async function shutdown() {
+/**
+ * Gracefully shutdown the server
+ * Stops the scheduler, closes Redis and database connections
+ * @async
+ * @returns {Promise<void>}
+ */
+const shutdown = async () => {
   console.log('\nShutting down gracefully...');
   
   scheduler.stop();
@@ -76,7 +86,7 @@ async function shutdown() {
   
   console.log('Shutdown complete');
   process.exit(0);
-}
+};
 
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);

@@ -13,8 +13,9 @@ import { convertCurrency as convertCurrencyService } from './ratesConversionServ
 
 /**
  * Get list of available currencies
+ * @returns {Promise<string[]>} Array of currency codes
  */
-export async function getAvailableCurrencies() {
+export const getAvailableCurrencies = async () => {
   const sql = `
     SELECT DISTINCT base as code
     FROM rates_latest
@@ -26,12 +27,13 @@ export async function getAvailableCurrencies() {
 
   const result = await query(sql);
   return result.rows.map(row => row.code);
-}
+};
 
 /**
  * Get list of configured base currencies from environment variable
+ * @returns {Promise<string[]>} Array of base currency codes
  */
-export async function getConfiguredBaseCurrencies() {
+export const getConfiguredBaseCurrencies = async () => {
   // Get base currencies from environment variable
   let baseCurrencies = ['USD', 'EUR', 'GBP', 'JPY']; // Default
   
@@ -48,12 +50,17 @@ export async function getConfiguredBaseCurrencies() {
   }
   
   return baseCurrencies;
-}
+};
 
 /**
  * Get latest rates from cache or database
+ * @param {Object} filters - Filter options
+ * @param {string} [filters.base] - Base currency code
+ * @param {string} [filters.target] - Target currency code
+ * @param {string} [filters.q] - Search query
+ * @returns {Promise<Array>} Array of rate objects
  */
-export async function getLatestRates(filters = {}) {
+export const getLatestRates = async (filters = {}) => {
   const { base, target, q } = filters;
 
   // If specific pair requested, try cache first
@@ -101,12 +108,19 @@ export async function getLatestRates(filters = {}) {
 
   const result = await query(sql, values);
   return result.rows;
-}
+};
 
 /**
  * Get historical rates
+ * @param {Object} filters - Filter options
+ * @param {string} filters.base - Base currency code (required)
+ * @param {string} filters.target - Target currency code (required)
+ * @param {string} [filters.start] - Start date (YYYY-MM-DD)
+ * @param {string} [filters.end] - End date (YYYY-MM-DD)
+ * @param {number} [filters.limit=1000] - Maximum number of records
+ * @returns {Promise<Array>} Array of historical rate objects
  */
-export async function getHistoricalRates(filters = {}) {
+export const getHistoricalRates = async (filters = {}) => {
   const { base, target, start, end, limit = 1000 } = filters;
 
   if (!base || !target) {
@@ -147,19 +161,28 @@ export async function getHistoricalRates(filters = {}) {
 
   const result = await query(sql, values);
   return result.rows;
-}
+};
 
 /**
  * Convert currency amount (delegates to conversion service)
+ * @param {string} from - Source currency code
+ * @param {string} to - Target currency code
+ * @param {number} amount - Amount to convert
+ * @returns {Promise<Object>} Conversion result
  */
-export async function convertCurrency(from, to, amount) {
+export const convertCurrency = async (from, to, amount) => {
   return convertCurrencyService(from, to, amount);
-}
+};
 
 /**
  * Update latest rate in database and cache
+ * @param {string} base - Base currency code
+ * @param {string} target - Target currency code
+ * @param {number} rate - Exchange rate
+ * @param {string} sourceIntegrationId - Integration ID that provided the rate
+ * @returns {Promise<void>}
  */
-export async function updateLatestRate(base, target, rate, sourceIntegrationId) {
+export const updateLatestRate = async (base, target, rate, sourceIntegrationId) => {
   const pair = `${base}-${target}`;
   const now = new Date();
 
@@ -183,19 +206,24 @@ export async function updateLatestRate(base, target, rate, sourceIntegrationId) 
   };
   
   await setRateInCache(pair, cacheData);
-}
+};
 
 /**
  * Save rate to history
+ * @param {string} base - Base currency code
+ * @param {string} target - Target currency code
+ * @param {number} rate - Exchange rate
+ * @param {string} sourceIntegrationId - Integration ID that provided the rate
+ * @returns {Promise<void>}
  */
-export async function saveRateHistory(base, target, rate, sourceIntegrationId) {
+export const saveRateHistory = async (base, target, rate, sourceIntegrationId) => {
   const sql = `
     INSERT INTO rates_history (base, target, rate, fetched_at, source_integration_id)
     VALUES ($1, $2, $3, $4, $5)
   `;
 
   await query(sql, [base, target, rate, new Date(), sourceIntegrationId]);
-}
+};
 
 // Default export for backwards compatibility with tests
 export default {

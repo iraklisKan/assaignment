@@ -11,7 +11,21 @@ import {
   EmptyState
 } from '../components/ui/index.jsx';
 
-function IntegrationsPage() {
+/**
+ * Filter options for integration status
+ */
+const filterOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+];
+
+/**
+ * IntegrationsPage component
+ * Manages and displays API integration configurations
+ * @returns {JSX.Element} The IntegrationsPage component
+ */
+const IntegrationsPage = () => {
   const [integrations, setIntegrations] = useState([]);
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +122,7 @@ function IntegrationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Integration Management</h1>
           <p className="mt-1 text-sm text-gray-600">
@@ -230,12 +244,6 @@ function IntegrationsPage() {
       )}
     </div>
   );
-}
-
-const filterOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' },
-];
+};
 
 export default IntegrationsPage;

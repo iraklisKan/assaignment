@@ -2,8 +2,12 @@ import { query } from '../config/database.js';
 
 /**
  * Record API usage
+ * @param {number} integrationId - The integration ID
+ * @param {number} callsMade - Number of API calls made
+ * @param {Object} metrics - Usage metrics object
+ * @returns {Promise<void>}
  */
-export async function recordUsage(integrationId, callsMade = 1, metrics = {}) {
+export const recordUsage = async (integrationId, callsMade = 1, metrics = {}) => {
   const today = new Date().toISOString().split('T')[0];
 
   const sql = `
@@ -26,12 +30,15 @@ export async function recordUsage(integrationId, callsMade = 1, metrics = {}) {
     metrics.callsRemaining || null,
     metrics.resetAt || null
   ]);
-}
+};
 
 /**
  * Record error
+ * @param {number} integrationId - The integration ID
+ * @param {string} errorMessage - Error message to record
+ * @returns {Promise<void>}
  */
-export async function recordError(integrationId, errorMessage) {
+export const recordError = async (integrationId, errorMessage) => {
   const today = new Date().toISOString().split('T')[0];
 
   const sql = `
@@ -45,12 +52,15 @@ export async function recordError(integrationId, errorMessage) {
   `;
 
   await query(sql, [integrationId, today, errorMessage, new Date()]);
-}
+};
 
 /**
  * Get usage statistics for an integration
+ * @param {number} integrationId - The integration ID
+ * @param {number} days - Number of days to look back
+ * @returns {Promise<Array>} Array of usage statistics
  */
-export async function getUsageStats(integrationId, days = 30) {
+export const getUsageStats = async (integrationId, days = 30) => {
   const sql = `
     SELECT 
       date,
@@ -68,12 +78,14 @@ export async function getUsageStats(integrationId, days = 30) {
 
   const result = await query(sql, [integrationId]);
   return result.rows;
-}
+};
 
 /**
  * Get today's usage for an integration
+ * @param {number} integrationId - The integration ID
+ * @returns {Promise<Object|null>} Today's usage data or null
  */
-export async function getTodayUsage(integrationId) {
+export const getTodayUsage = async (integrationId) => {
   const today = new Date().toISOString().split('T')[0];
 
   const sql = `
@@ -90,12 +102,14 @@ export async function getTodayUsage(integrationId) {
 
   const result = await query(sql, [integrationId, today]);
   return result.rows[0] || null;
-}
+};
 
 /**
  * Get aggregated usage across all integrations
+ * @param {number} days - Number of days to aggregate
+ * @returns {Promise<Array>} Array of aggregated usage data
  */
-export async function getAggregatedUsage(days = 7) {
+export const getAggregatedUsage = async (days = 7) => {
   const sql = `
     SELECT 
       i.id,
@@ -114,12 +128,18 @@ export async function getAggregatedUsage(days = 7) {
 
   const result = await query(sql);
   return result.rows;
-}
+};
 
 /**
  * Log individual API request (detailed logging)
+ * @param {number} integrationId - The integration ID
+ * @param {string} baseCurrency - Base currency code
+ * @param {boolean} success - Whether the request succeeded
+ * @param {number} responseTimeMs - Response time in milliseconds
+ * @param {string|null} errorMessage - Error message if failed
+ * @returns {Promise<void>}
  */
-export async function logRequest(integrationId, baseCurrency, success, responseTimeMs, errorMessage = null) {
+export const logRequest = async (integrationId, baseCurrency, success, responseTimeMs, errorMessage = null) => {
   const sql = `
     INSERT INTO rate_requests (
       integration_id, base_currency, success, response_time_ms, error_message
@@ -127,12 +147,15 @@ export async function logRequest(integrationId, baseCurrency, success, responseT
   `;
 
   await query(sql, [integrationId, baseCurrency, success, responseTimeMs, errorMessage]);
-}
+};
 
 /**
  * Get recent API requests for monitoring
+ * @param {number|null} integrationId - Filter by integration ID (optional)
+ * @param {number} limit - Maximum number of results
+ * @returns {Promise<Array>} Array of recent requests
  */
-export async function getRecentRequests(integrationId = null, limit = 100) {
+export const getRecentRequests = async (integrationId = null, limit = 100) => {
   let sql = `
     SELECT 
       rr.id,
@@ -157,12 +180,15 @@ export async function getRecentRequests(integrationId = null, limit = 100) {
 
   const result = await query(sql, params);
   return result.rows;
-}
+};
 
 /**
  * Get API request statistics
+ * @param {number} integrationId - The integration ID
+ * @param {number} hours - Number of hours to analyze
+ * @returns {Promise<Object>} Request statistics
  */
-export async function getRequestStats(integrationId, hours = 24) {
+export const getRequestStats = async (integrationId, hours = 24) => {
   const sql = `
     SELECT 
       COUNT(*) as total_requests,
@@ -178,12 +204,18 @@ export async function getRequestStats(integrationId, hours = 24) {
 
   const result = await query(sql, [integrationId]);
   return result.rows[0];
-}
+};
 
 /**
  * Log user conversion request
+ * @param {string} fromCurrency - Source currency code
+ * @param {string} toCurrency - Target currency code
+ * @param {number} amount - Amount to convert
+ * @param {number} result - Conversion result
+ * @param {number} rateUsed - Exchange rate used
+ * @returns {Promise<void>}
  */
-export async function logConversion(fromCurrency, toCurrency, amount, result, rateUsed) {
+export const logConversion = async (fromCurrency, toCurrency, amount, result, rateUsed) => {
   const sql = `
     INSERT INTO conversions (
       from_currency, to_currency, amount, result, rate_used
@@ -191,12 +223,14 @@ export async function logConversion(fromCurrency, toCurrency, amount, result, ra
   `;
 
   await query(sql, [fromCurrency, toCurrency, amount, result, rateUsed]);
-}
+};
 
 /**
  * Get recent conversions
+ * @param {number} limit - Maximum number of results
+ * @returns {Promise<Array>} Array of recent conversions
  */
-export async function getRecentConversions(limit = 50) {
+export const getRecentConversions = async (limit = 50) => {
   const sql = `
     SELECT 
       id,
@@ -213,12 +247,15 @@ export async function getRecentConversions(limit = 50) {
 
   const result = await query(sql, [limit]);
   return result.rows;
-}
+};
 
 /**
  * Get popular currency pairs
+ * @param {number} days - Number of days to analyze
+ * @param {number} limit - Maximum number of results
+ * @returns {Promise<Array>} Array of popular currency pairs
  */
-export async function getPopularPairs(days = 7, limit = 10) {
+export const getPopularPairs = async (days = 7, limit = 10) => {
   const sql = `
     SELECT 
       from_currency,
@@ -235,4 +272,4 @@ export async function getPopularPairs(days = 7, limit = 10) {
 
   const result = await query(sql, [limit]);
   return result.rows;
-}
+};

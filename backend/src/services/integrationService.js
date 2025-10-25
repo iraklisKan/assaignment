@@ -6,8 +6,17 @@ import { AppError } from '../middleware/errorHandler.js';
 
 /**
  * Create a new integration
+ * @param {Object} data - Integration data
+ * @param {string} data.name - Integration name
+ * @param {string} data.provider - Provider identifier
+ * @param {string} data.base_url - Base URL for the API
+ * @param {string} [data.api_key] - API key (will be encrypted)
+ * @param {number} [data.priority] - Priority level (default: 100)
+ * @param {number} [data.poll_interval_seconds] - Polling interval in seconds (default: 300)
+ * @param {boolean} [data.active] - Whether integration is active (default: true)
+ * @returns {Promise<Object>} Created integration object
  */
-export async function createIntegration(data) {
+export const createIntegration = async (data) => {
   validateRequired(data, ['name', 'provider', 'base_url']);
 
   const { name, provider, base_url, api_key, priority, poll_interval_seconds, active } = data;
@@ -40,12 +49,16 @@ export async function createIntegration(data) {
 
   const result = await query(sql, values);
   return result.rows[0];
-}
+};
 
 /**
  * Get all integrations
+ * @param {Object} [filters={}] - Filter options
+ * @param {boolean} [filters.active] - Filter by active status
+ * @param {string} [filters.provider] - Filter by provider
+ * @returns {Promise<Array>} Array of integration objects
  */
-export async function getIntegrations(filters = {}) {
+export const getIntegrations = async (filters = {}) => {
   let sql = 'SELECT id, name, provider, base_url, priority, poll_interval_seconds, active, created_at, updated_at FROM integrations';
   const conditions = [];
   const values = [];
@@ -68,12 +81,14 @@ export async function getIntegrations(filters = {}) {
 
   const result = await query(sql, values);
   return result.rows;
-}
+};
 
 /**
  * Get integration by ID
+ * @param {string} id - Integration UUID
+ * @returns {Promise<Object>} Integration object with decrypted API key
  */
-export async function getIntegrationById(id) {
+export const getIntegrationById = async (id) => {
   const sql = `
     SELECT id, name, provider, base_url, api_key_enc, priority, poll_interval_seconds, active, created_at, updated_at
     FROM integrations
@@ -94,12 +109,15 @@ export async function getIntegrationById(id) {
   }
 
   return integration;
-}
+};
 
 /**
  * Update integration
+ * @param {string} id - Integration UUID
+ * @param {Object} data - Update data
+ * @returns {Promise<Object>} Updated integration object
  */
-export async function updateIntegration(id, data) {
+export const updateIntegration = async (id, data) => {
   const existing = await getIntegrationById(id);
   
   const updates = [];
@@ -160,12 +178,14 @@ export async function updateIntegration(id, data) {
 
   const result = await query(sql, values);
   return result.rows[0];
-}
+};
 
 /**
- * Delete/deactivate integration
+ * Delete/deactivate integration (soft delete)
+ * @param {string} id - Integration UUID
+ * @returns {Promise<Object>} Success response
  */
-export async function deleteIntegration(id) {
+export const deleteIntegration = async (id) => {
   // Soft delete by deactivating
   const sql = `
     UPDATE integrations
@@ -181,12 +201,14 @@ export async function deleteIntegration(id) {
   }
 
   return { success: true };
-}
+};
 
 /**
- * Permanently delete integration
+ * Permanently delete integration (hard delete)
+ * @param {string} id - Integration UUID
+ * @returns {Promise<Object>} Success response
  */
-export async function hardDeleteIntegration(id) {
+export const hardDeleteIntegration = async (id) => {
   // Check if integration exists
   await getIntegrationById(id);
   
@@ -204,12 +226,13 @@ export async function hardDeleteIntegration(id) {
   }
 
   return { success: true };
-}
+};
 
 /**
  * Get all active integrations with decrypted keys
+ * @returns {Promise<Array>} Array of active integration objects with decrypted API keys
  */
-export async function getActiveIntegrationsWithKeys() {
+export const getActiveIntegrationsWithKeys = async () => {
   const sql = `
     SELECT id, name, provider, base_url, api_key_enc, priority, poll_interval_seconds
     FROM integrations

@@ -5,7 +5,16 @@ import RateChart from '../RateChart.jsx';
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
-function LatestRatesTable({ baseCurrencies, onError }) {
+/**
+ * LatestRatesTable component displays current exchange rates for a selected base currency.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string[]} props.baseCurrencies - Array of available base currencies
+ * @param {Function} props.onError - Error callback function
+ * @returns {JSX.Element} The latest rates table component
+ */
+const LatestRatesTable = ({ baseCurrencies, onError }) => {
   const [baseCurrency, setBaseCurrency] = useState('USD');
   const [rates, setRates] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -94,16 +103,16 @@ function LatestRatesTable({ baseCurrencies, onError }) {
     <>
       <Card>
         <Card.Header>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h2 className="text-lg font-semibold text-gray-900">Latest Rates</h2>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 sm:mr-2">
                 Base:
               </label>
               <Select
                 value={baseCurrency}
                 onChange={(e) => setBaseCurrency(e.target.value)}
-                className="w-24"
+                className="w-full sm:w-24"
               >
                 {baseCurrencies.map((currency) => (
                   <option key={currency} value={currency}>
@@ -116,6 +125,7 @@ function LatestRatesTable({ baseCurrencies, onError }) {
                 disabled={loading}
                 size="sm"
                 variant="secondary"
+                className="w-full sm:w-auto"
               >
                 Refresh
               </Button>
@@ -138,63 +148,65 @@ function LatestRatesTable({ baseCurrencies, onError }) {
               description="Select a base currency to view exchange rates"
             />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Currency
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Exchange Rate
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {rates.map((item) => (
-                    <tr key={item.currency} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">
-                              {item.currency.slice(0, 2)}
-                            </span>
-                          </div>
-                          <div className="ml-3">
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.currency}
+            <div className="overflow-x-auto -mx-6 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Currency
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Exchange Rate
+                      </th>
+                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {rates.map((item) => (
+                      <tr key={item.currency} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">
+                                {item.currency.slice(0, 2)}
+                              </span>
+                            </div>
+                            <div className="ml-3">
+                              <div className="text-sm font-medium text-gray-900">
+                                {item.currency}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {item.rate ? item.rate.toFixed(6) : 'N/A'}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          1 {baseCurrency} = {item.rate ? item.rate.toFixed(2) : 'N/A'} {item.currency}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <Button
-                          onClick={() => handleShowChart(item.currency)}
-                          disabled={chartLoading}
-                          size="sm"
-                          variant="ghost"
-                        >
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                          </svg>
-                          History
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
+                          <div className="text-sm font-semibold text-gray-900">
+                            {item.rate ? item.rate.toFixed(6) : 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-500 hidden sm:block">
+                            1 {baseCurrency} = {item.rate ? item.rate.toFixed(2) : 'N/A'} {item.currency}
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
+                          <Button
+                            onClick={() => handleShowChart(item.currency)}
+                            disabled={chartLoading}
+                            size="sm"
+                            variant="ghost"
+                          >
+                            <svg className="w-4 h-4 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <span className="hidden sm:inline">History</span>
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </Card.Content>
@@ -213,6 +225,6 @@ function LatestRatesTable({ baseCurrencies, onError }) {
       )}
     </>
   );
-}
+};
 
 export default LatestRatesTable;

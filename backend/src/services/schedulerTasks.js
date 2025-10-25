@@ -10,8 +10,9 @@ import { query } from '../config/database.js';
 
 /**
  * Get all available currencies from the database
+ * @returns {Promise<string[]>} Array of currency codes
  */
-export async function getAllAvailableCurrencies() {
+export const getAllAvailableCurrencies = async () => {
   try {
     // Get unique currencies from rates_latest table
     const result = await query(`
@@ -33,12 +34,13 @@ export async function getAllAvailableCurrencies() {
     console.error('Error fetching currencies from database:', error.message);
     return ['USD', 'EUR', 'GBP', 'JPY']; // Fallback
   }
-}
+};
 
 /**
  * Get list of base currencies to fetch (from env or default)
+ * @returns {Promise<string[]>} Array of base currency codes
  */
-export async function getBaseCurrenciesToFetch() {
+export const getBaseCurrenciesToFetch = async () => {
   let baseCurrencies = ['USD', 'EUR', 'GBP', 'JPY']; // Default
   
   if (process.env.BASE_CURRENCIES) {
@@ -55,12 +57,16 @@ export async function getBaseCurrenciesToFetch() {
   }
   
   return baseCurrencies;
-}
+};
 
 /**
  * Fetch rates for a single base currency from an integration
+ * @param {Object} integration - Integration instance
+ * @param {Object} integrationConfig - Integration configuration
+ * @param {string} baseCurrency - Base currency code
+ * @returns {Promise<Object>} Result with success status and updated count
  */
-export async function fetchRatesForBase(integration, integrationConfig, baseCurrency) {
+export const fetchRatesForBase = async (integration, integrationConfig, baseCurrency) => {
   const requestStartTime = Date.now();
   
   try {
@@ -108,12 +114,16 @@ export async function fetchRatesForBase(integration, integrationConfig, baseCurr
     console.error(`  ✗ Error fetching ${baseCurrency} rates:`, error.message);
     return { success: false, updatedCount: 0, error: error.message };
   }
-}
+};
 
 /**
  * Check usage metrics and warn if approaching limits
+ * @param {Object} integration - Integration instance
+ * @param {Object} integrationConfig - Integration configuration
+ * @param {number} apiCallsMade - Number of API calls made
+ * @returns {Promise<void>}
  */
-export async function checkAndWarnUsage(integration, integrationConfig, apiCallsMade) {
+export const checkAndWarnUsage = async (integration, integrationConfig, apiCallsMade) => {
   try {
     const metrics = await integration.getUsageMetrics();
     await recordUsage(integrationConfig.id, apiCallsMade, metrics);
@@ -129,12 +139,14 @@ export async function checkAndWarnUsage(integration, integrationConfig, apiCalls
   } catch (error) {
     console.warn('Failed to check usage metrics:', error.message);
   }
-}
+};
 
 /**
  * Main task: Fetch and store rates for an integration
+ * @param {Object} integrationConfig - Integration configuration object
+ * @returns {Promise<void>}
  */
-export async function fetchAndStoreRates(integrationConfig) {
+export const fetchAndStoreRates = async (integrationConfig) => {
   const startTime = Date.now();
   console.log(`Fetching rates from ${integrationConfig.name}...`);
 

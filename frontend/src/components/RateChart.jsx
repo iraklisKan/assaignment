@@ -23,7 +23,17 @@ ChartJS.register(
   Legend
 );
 
-function RateChart({ currencyPair, historyData, onClose }) {
+/**
+ * RateChart component displays historical exchange rate data in a line chart.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.currencyPair - Currency pair string (e.g., "USD/EUR")
+ * @param {Array} props.historyData - Array of historical rate data
+ * @param {Function} props.onClose - Function to call when closing the chart modal
+ * @returns {JSX.Element} The rate chart modal component
+ */
+const RateChart = ({ currencyPair, historyData, onClose }) => {
   const chartRef = useRef(null);
 
   // Prepare chart data
@@ -209,6 +219,6 @@ function RateChart({ currencyPair, historyData, onClose }) {
       </div>
     </Modal>
   );
-}
+};
 
 export default RateChart;

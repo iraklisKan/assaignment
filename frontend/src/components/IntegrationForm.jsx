@@ -1,70 +1,82 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { Modal, Button, Input, Select, Alert } from './ui/index.jsx';
 
-function IntegrationForm({ integration, providers, onSubmit, onCancel }) {
-  const [formData, setFormData] = useState({
-    name: '',
-    provider: '',
-    base_url: '',
-    api_key: '',
-    priority: '100',
-    poll_interval_seconds: '300',
-    active: true
+/**
+ * Initial form values
+ */
+const initialFormValues = {
+  name: '',
+  provider: '',
+  base_url: '',
+  api_key: '',
+  priority: 100,
+  poll_interval_seconds: 300,
+  active: true,
+};
+
+/**
+ * IntegrationForm component
+ * Provides a form for creating and editing exchange rate API integrations
+ * Uses react-hook-form with zod validation for robust form handling
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} [props.integration] - The integration object to edit (undefined for new integration)
+ * @param {Array} props.providers - List of available providers
+ * @param {Function} props.onSubmit - Callback function to submit the form data
+ * @param {Function} props.onCancel - Callback function to cancel the form
+ * @returns {JSX.Element} The IntegrationForm component
+ */
+const IntegrationForm = ({ integration, providers, onSubmit, onCancel }) => {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError: setFormError,
+    reset,
+    setValue,
+    watch,
+  } = useForm({
+    defaultValues: initialFormValues,
+    mode: 'onBlur', // Validate on blur
   });
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+
+  // Watch provider changes to auto-fill base URL
+  const selectedProvider = watch('provider');
 
   useEffect(() => {
     if (integration) {
-      setFormData({
+      reset({
         name: integration.name,
         provider: integration.provider,
         base_url: integration.base_url,
         api_key: '', // Never populate API key for security
-        priority: integration.priority.toString(),
-        poll_interval_seconds: integration.poll_interval_seconds.toString(),
+        priority: integration.priority,
+        poll_interval_seconds: integration.poll_interval_seconds,
         active: integration.active
       });
     }
-  }, [integration]);
+  }, [integration, reset]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleProviderChange = (e) => {
-    const selectedProvider = providers.find(p => p.name === e.target.value);
-    
+  // Auto-fill base URL when provider changes (for new integrations only)
+  useEffect(() => {
     if (selectedProvider && !integration) {
-      // Auto-fill base URL when creating new integration
-      setFormData(prev => ({
-        ...prev,
-        provider: selectedProvider.name,
-        base_url: selectedProvider.defaultBaseUrl
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        provider: e.target.value
-      }));
+      const provider = providers.find(p => p.name === selectedProvider);
+      if (provider?.defaultBaseUrl) {
+        setValue('base_url', provider.defaultBaseUrl);
+      }
     }
-  };
+  }, [selectedProvider, providers, integration, setValue]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-
+  /**
+   * Handle form submission
+   * Validates and submits the form data
+   * @param {Object} data - The validated form data from react-hook-form
+   * @returns {Promise<void>}
+   */
+  const onSubmitForm = async (data) => {
     try {
-      const submitData = {
-        ...formData,
-        priority: parseInt(formData.priority),
-        poll_interval_seconds: parseInt(formData.poll_interval_seconds)
-      };
+      const submitData = { ...data };
 
       // Don't send empty API key on update
       if (integration && !submitData.api_key) {
@@ -73,12 +85,10 @@ function IntegrationForm({ integration, providers, onSubmit, onCancel }) {
 
       await onSubmit(submitData);
     } catch (err) {
-      // Ensure error is always a string
+      // Set form-level error
       const errorMessage = typeof err === 'string' ? err : 
                           (err.message || JSON.stringify(err) || 'An error occurred');
-      setError(errorMessage);
-    } finally {
-      setSubmitting(false);
+      setFormError('root', { type: 'manual', message: errorMessage });
     }
   };
 
@@ -89,107 +99,173 @@ function IntegrationForm({ integration, providers, onSubmit, onCancel }) {
       title={integration ? 'Edit Integration' : 'Add New Integration'}
       footer={
         <>
-          <Button variant="ghost" onClick={onCancel} disabled={submitting}>
+          <Button variant="ghost" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit" form="integration-form" disabled={submitting}>
-            {submitting ? 'Saving...' : integration ? 'Update' : 'Create'}
+          <Button type="submit" form="integration-form" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : integration ? 'Update' : 'Create'}
           </Button>
         </>
       }
     >
-      {error && (
-        <Alert variant="error" onClose={() => setError(null)} className="mb-4">
-          {error}
+      {errors.root && (
+        <Alert variant="error" onClose={() => setFormError('root', null)} className="mb-4">
+          {errors.root.message}
         </Alert>
       )}
 
-      <form id="integration-form" onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Integration Name"
+      <form id="integration-form" onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
+        <Controller
           name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="My Exchange Rate API"
-          required
+          control={control}
+          rules={{
+            required: 'Integration name is required',
+            minLength: { value: 1, message: 'Name is required' },
+            maxLength: { value: 100, message: 'Name is too long (max 100 characters)' },
+          }}
+          render={({ field }) => (
+            <Input
+              {...field}
+              label="Integration Name"
+              placeholder="My Exchange Rate API"
+              error={errors.name?.message}
+            />
+          )}
         />
 
-        <Select
-          label="Provider"
+        <Controller
           name="provider"
-          value={formData.provider}
-          onChange={handleProviderChange}
-          required
-          disabled={!!integration}
-        >
-          <option value="">Select a provider...</option>
-          {providers.map((provider) => (
-            <option key={provider.name} value={provider.name}>
-              {provider.displayName} — {provider.description}
-            </option>
-          ))}
-        </Select>
+          control={control}
+          rules={{
+            required: 'Provider is required',
+          }}
+          render={({ field }) => (
+            <Select
+              {...field}
+              label="Provider"
+              disabled={!!integration}
+              error={errors.provider?.message}
+            >
+              <option value="">Select a provider...</option>
+              {providers.map((provider) => (
+                <option key={provider.name} value={provider.name}>
+                  {provider.displayName} — {provider.description}
+                </option>
+              ))}
+            </Select>
+          )}
+        />
 
-        <Input
-          label="Base URL"
+        <Controller
           name="base_url"
-          type="url"
-          value={formData.base_url}
-          onChange={handleChange}
-          placeholder="https://api.example.com"
-          required
+          control={control}
+          rules={{
+            required: 'Base URL is required',
+            pattern: {
+              value: /^https?:\/\/.+/,
+              message: 'Must be a valid URL starting with http:// or https://',
+            },
+          }}
+          render={({ field }) => (
+            <Input
+              {...field}
+              label="Base URL"
+              type="url"
+              placeholder="https://api.example.com"
+              error={errors.base_url?.message}
+            />
+          )}
         />
 
-        <Input
-          label={integration ? 'API Key (leave empty to keep current)' : 'API Key'}
+        <Controller
           name="api_key"
-          type="password"
-          value={formData.api_key}
-          onChange={handleChange}
-          placeholder="your-api-key-here"
-          required={!integration}
-          helperText="Your API key will be encrypted before storage"
+          control={control}
+          rules={{
+            required: !integration ? 'API Key is required for new integrations' : false,
+          }}
+          render={({ field }) => (
+            <Input
+              {...field}
+              label={integration ? 'API Key (leave empty to keep current)' : 'API Key'}
+              type="password"
+              placeholder="your-api-key-here"
+              helperText="Your API key will be encrypted before storage"
+              error={errors.api_key?.message}
+            />
+          )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Priority"
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Controller
             name="priority"
-            type="number"
-            value={formData.priority}
-            onChange={handleChange}
-            min="1"
-            max="1000"
-            helperText="Lower = higher priority"
+            control={control}
+            rules={{
+              required: 'Priority is required',
+              min: { value: 1, message: 'Priority must be at least 1' },
+              max: { value: 1000, message: 'Priority cannot exceed 1000' },
+              validate: (value) => Number.isInteger(value) || 'Priority must be a whole number',
+            }}
+            render={({ field: { onChange, value, ...rest } }) => (
+              <Input
+                {...rest}
+                type="number"
+                label="Priority"
+                value={value}
+                onChange={(e) => onChange(parseInt(e.target.value, 10))}
+                min="1"
+                max="1000"
+                helperText="Lower = higher priority"
+                error={errors.priority?.message}
+              />
+            )}
           />
 
-          <Input
-            label="Poll Interval (seconds)"
+          <Controller
             name="poll_interval_seconds"
-            type="number"
-            value={formData.poll_interval_seconds}
-            onChange={handleChange}
-            min="60"
-            max="3600"
-            helperText="60-3600 seconds"
+            control={control}
+            rules={{
+              required: 'Poll interval is required',
+              min: { value: 60, message: 'Minimum interval is 60 seconds' },
+              max: { value: 3600, message: 'Maximum interval is 3600 seconds' },
+              validate: (value) => Number.isInteger(value) || 'Interval must be a whole number',
+            }}
+            render={({ field: { onChange, value, ...rest } }) => (
+              <Input
+                {...rest}
+                type="number"
+                label="Poll Interval (seconds)"
+                value={value}
+                onChange={(e) => onChange(parseInt(e.target.value, 10))}
+                min="60"
+                max="3600"
+                helperText="60-3600 seconds"
+                error={errors.poll_interval_seconds?.message}
+              />
+            )}
           />
         </div>
 
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            name="active"
-            checked={formData.active}
-            onChange={handleChange}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <span className="text-sm font-medium text-gray-700">
-            Active (enable rate fetching)
-          </span>
-        </label>
+        <Controller
+          name="active"
+          control={control}
+          render={({ field: { onChange, value, ...rest } }) => (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                {...rest}
+                type="checkbox"
+                checked={value}
+                onChange={(e) => onChange(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Active (enable rate fetching)
+              </span>
+            </label>
+          )}
+        />
       </form>
     </Modal>
   );
-}
+};
 
 export default IntegrationForm;

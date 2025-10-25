@@ -8,7 +8,7 @@ const IV_LENGTH = 16;
  * Get encryption key from environment
  * @returns {Buffer} Encryption key
  */
-function getEncryptionKey() {
+const getEncryptionKey = () => {
   const key = process.env.APP_DATA_KEY;
   if (!key) {
     throw new Error('APP_DATA_KEY environment variable is required');
@@ -17,14 +17,14 @@ function getEncryptionKey() {
   // Ensure key is exactly 32 bytes
   const keyBuffer = Buffer.from(key.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH));
   return keyBuffer;
-}
+};
 
 /**
  * Encrypt a string value
  * @param {string} text - Plain text to encrypt
  * @returns {string} Encrypted text with IV prepended (format: iv:encryptedData)
  */
-export function encrypt(text) {
+export const encrypt = (text) => {
   if (!text) return text;
   
   const key = getEncryptionKey();
@@ -36,14 +36,14 @@ export function encrypt(text) {
   
   // Prepend IV to encrypted data
   return iv.toString('hex') + ':' + encrypted;
-}
+};
 
 /**
  * Decrypt an encrypted string
  * @param {string} encryptedText - Encrypted text (format: iv:encryptedData)
  * @returns {string} Decrypted plain text
  */
-export function decrypt(encryptedText) {
+export const decrypt = (encryptedText) => {
   if (!encryptedText) return encryptedText;
   
   const key = getEncryptionKey();
@@ -62,24 +62,24 @@ export function decrypt(encryptedText) {
   decrypted += decipher.final('utf8');
   
   return decrypted;
-}
+};
 
 /**
  * Encrypt API key (wrapper for tests)
  * @param {string} apiKey - Plain API key to encrypt
  * @returns {string|null} Encrypted API key or null if empty
  */
-export function encryptApiKey(apiKey) {
+export const encryptApiKey = (apiKey) => {
   if (!apiKey) return null;
   return encrypt(apiKey);
-}
+};
 
 /**
  * Decrypt API key (wrapper for tests)
  * @param {string} encryptedApiKey - Encrypted API key
  * @returns {string|null} Decrypted API key or null if empty
  */
-export function decryptApiKey(encryptedApiKey) {
+export const decryptApiKey = (encryptedApiKey) => {
   if (!encryptedApiKey) return null;
   return decrypt(encryptedApiKey);
-}
+};

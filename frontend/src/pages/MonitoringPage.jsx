@@ -4,7 +4,13 @@ import { Card, Badge, Alert, LoadingSpinner, EmptyState } from '../components/ui
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
-function MonitoringPage() {
+/**
+ * MonitoringPage component displays system health and usage statistics.
+ * 
+ * @component
+ * @returns {JSX.Element} The monitoring page with health status and metrics
+ */
+const MonitoringPage = () => {
   const [healthStatus, setHealthStatus] = useState(null);
   const [usageStats, setUsageStats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +88,7 @@ function MonitoringPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">System Monitoring</h1>
           <p className="mt-2 text-gray-600">
@@ -91,8 +97,8 @@ function MonitoringPage() {
         </div>
         
         {/* Auto-refresh controls */}
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <label className="flex items-center gap-2 cursor-pointer justify-center sm:justify-start">
             <input
               type="checkbox"
               checked={autoRefresh}
@@ -105,7 +111,7 @@ function MonitoringPage() {
           </label>
           <button
             onClick={fetchMonitoringData}
-            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors self-center"
             aria-label="Refresh now"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +128,7 @@ function MonitoringPage() {
       )}
 
       {/* System Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Overall Status */}
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
           <Card.Content>
@@ -353,6 +359,6 @@ function MonitoringPage() {
       </Card>
     </div>
   );
-}
+};
 
 export default MonitoringPage;

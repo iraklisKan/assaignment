@@ -59,8 +59,11 @@ class LRUCache {
 
 const fallbackCache = new LRUCache(1000);
 
-// Initialize Redis or fall back to in-memory cache
-export async function initRedis() {
+/**
+ * Initialize Redis or fall back to in-memory cache
+ * @returns {Promise<Object>} Redis client or fallback cache
+ */
+export const initRedis = async () => {
   // Skip Redis if REDIS_URL is not set
   if (!process.env.REDIS_URL && !process.env.REDIS_HOST) {
     console.log('⚠️  Redis not configured - using in-memory LRU cache');
@@ -100,28 +103,35 @@ export async function initRedis() {
     isRedisAvailable = false;
     return fallbackCache;
   }
-}
+};
 
-// Get the cache client (Redis or fallback)
-export function getCacheClient() {
+/**
+ * Get the cache client (Redis or fallback)
+ * @returns {Object} Redis client or fallback LRU cache
+ */
+export const getCacheClient = () => {
   if (isRedisAvailable && redisClient) {
     return redisClient;
   }
   return fallbackCache;
-}
+};
 
-// Check if Redis is actually connected
-export function isRedisConnected() {
+/**
+ * Check if Redis is actually connected
+ * @returns {boolean} True if Redis is available
+ */
+export const isRedisConnected = () => {
   return isRedisAvailable;
-}
+};
 
 /**
  * Close Redis connection
+ * @returns {Promise<void>}
  */
-export async function closeRedis() {
+export const closeRedis = async () => {
   if (redisClient) {
     await redisClient.quit();
   }
-}
+};
 
 export { redisClient, fallbackCache };

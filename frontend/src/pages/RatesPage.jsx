@@ -6,7 +6,13 @@ import LatestRatesTable from '../components/rates/LatestRatesTable.jsx';
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
-function RatesPage() {
+/**
+ * RatesPage component displays exchange rates and currency conversion tools.
+ * 
+ * @component
+ * @returns {JSX.Element} The rates page with converter and rates table
+ */
+const RatesPage = () => {
   const [currencies, setCurrencies] = useState([]);
   const [baseCurrencies, setBaseCurrencies] = useState([]);
   const [error, setError] = useState(null);
@@ -52,7 +58,7 @@ function RatesPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Currency Converter */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 order-2 lg:order-1">
           <CurrencyConverter 
             currencies={currencies} 
             onError={setError}
@@ -60,7 +66,7 @@ function RatesPage() {
         </div>
 
         {/* Latest Rates Table */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 order-1 lg:order-2">
           <LatestRatesTable 
             baseCurrencies={baseCurrencies}
             onError={setError}
@@ -69,6 +75,6 @@ function RatesPage() {
       </div>
     </div>
   );
-}
+};
 
 export default RatesPage;

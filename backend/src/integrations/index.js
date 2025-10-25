@@ -19,9 +19,14 @@ import FixerIO from './FixerIO.js';
 import CurrencyLayer from './CurrencyLayer.js';
 import MockIntegration from './MockIntegration.js';
 
-// Factory function: Given a provider name, create the right integration instance
-// Example: createIntegration({provider: 'exchangerate-api', ...}) → ExchangeRateAPI object
-export function createIntegration(config) {
+/**
+ * Factory function: Given a provider name, create the right integration instance
+ * Example: createIntegration({provider: 'exchangerate-api', ...}) → ExchangeRateAPI object
+ * @param {Object} config - Integration configuration
+ * @param {string} config.provider - Provider identifier
+ * @returns {Object} Integration instance
+ */
+export const createIntegration = (config) => {
   const provider = config.provider.toLowerCase();
 
   switch (provider) {
@@ -42,11 +47,14 @@ export function createIntegration(config) {
       // If someone tries to use a provider we don't support, throw an error
       throw new Error(`Unknown integration provider: ${provider}`);
   }
-}
+};
 
-// Return metadata about all supported providers
-// This is used by the frontend to populate dropdown menus and show helpful info
-export function getSupportedProviders() {
+/**
+ * Return metadata about all supported providers
+ * This is used by the frontend to populate dropdown menus and show helpful info
+ * @returns {Array<Object>} Array of provider metadata objects
+ */
+export const getSupportedProviders = () => {
   return [
     {
       name: 'exchangerate-api',                             // Internal identifier
@@ -77,7 +85,7 @@ export function getSupportedProviders() {
       description: 'No API key needed - perfect for testing'
     }
   ];
-}
+};
 
 // Export all integration classes for direct import if needed
 export { ExchangeRateAPI, FixerIO, CurrencyLayer, MockIntegration };

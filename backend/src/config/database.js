@@ -22,7 +22,7 @@ pool.on('error', (err) => {
  * @param {Array} params - Query parameters
  * @returns {Promise<Object>} Query result
  */
-export async function query(text, params) {
+export const query = async (text, params) => {
   const start = Date.now();
   const result = await pool.query(text, params);
   const duration = Date.now() - start;
@@ -32,21 +32,22 @@ export async function query(text, params) {
   }
   
   return result;
-}
+};
 
 /**
  * Get a client from the pool for transactions
  * @returns {Promise<Object>} Database client
  */
-export async function getClient() {
+export const getClient = async () => {
   return await pool.connect();
-}
+};
 
 /**
  * Close the pool
+ * @returns {Promise<void>}
  */
-export async function closePool() {
+export const closePool = async () => {
   await pool.end();
-}
+};
 
 export default pool;

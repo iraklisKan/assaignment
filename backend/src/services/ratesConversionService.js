@@ -11,8 +11,11 @@ import { getRateFromCache } from './ratesCacheService.js';
 
 /**
  * Calculate data freshness and add warning if stale
+ * @param {Object} result - The result object to add freshness info to
+ * @param {Date|string} timestamp - The timestamp of the data
+ * @returns {Object} The result object with freshness information added
  */
-export function addDataFreshnessInfo(result, timestamp) {
+export const addDataFreshnessInfo = (result, timestamp) => {
   const now = new Date();
   const dataTime = new Date(timestamp);
   const ageMinutes = Math.floor((now - dataTime) / 1000 / 60);
@@ -37,12 +40,15 @@ export function addDataFreshnessInfo(result, timestamp) {
   }
   
   return result;
-}
+};
 
 /**
  * Get rate for a specific currency pair (cache → database)
+ * @async
+ * @param {string} pair - Currency pair (e.g., "USD-EUR")
+ * @returns {Promise<Object|null>} Rate object with rate and fetched_at, or null if not found
  */
-async function getRate(pair) {
+const getRate = async (pair) => {
   // Try cache first
   const cached = await getRateFromCache(pair);
   if (cached) {
@@ -64,12 +70,16 @@ async function getRate(pair) {
   }
   
   return null;
-}
+};
 
 /**
  * Try to find cross-rate through common base currencies
+ * @async
+ * @param {string} from - Source currency code
+ * @param {string} to - Target currency code
+ * @returns {Promise<Object|null>} Cross-rate object with rate, via, and crossRate flag, or null if not found
  */
-async function getCrossRate(from, to) {
+const getCrossRate = async (from, to) => {
   const baseCurrencies = ['USD', 'EUR', 'GBP', 'JPY'];
   
   for (const base of baseCurrencies) {
@@ -96,12 +106,18 @@ async function getCrossRate(from, to) {
   }
   
   return null;
-}
+};
 
 /**
  * Convert currency amount with direct or cross-rate
+ * @async
+ * @param {string} from - Source currency code
+ * @param {string} to - Target currency code
+ * @param {number|string} amount - Amount to convert
+ * @returns {Promise<Object>} Conversion result with amount, rate, and converted value
+ * @throws {AppError} If parameters are invalid or rate not found
  */
-export async function convertCurrency(from, to, amount) {
+export const convertCurrency = async (from, to, amount) => {
   if (!from || !to || !amount) {
     throw new AppError('from, to, and amount parameters are required', 400);
   }
@@ -185,7 +201,7 @@ export async function convertCurrency(from, to, amount) {
   
   // No rate found
   throw new AppError(`Exchange rate not available for ${pair}. No cross-rate path found.`, 404);
-}
+};
 
 export default {
   convertCurrency,

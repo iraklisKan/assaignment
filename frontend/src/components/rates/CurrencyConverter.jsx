@@ -4,14 +4,26 @@ import { Card, Input, Button, Select } from '../ui/index.jsx';
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
-function CurrencyConverter({ currencies, onError }) {
+/**
+ * CurrencyConverter component
+ * Provides currency conversion functionality with live exchange rates
+ * @param {Object} props - Component props
+ * @param {Array<string>} props.currencies - Available currencies list
+ * @param {Function} props.onError - Error callback function
+ * @returns {JSX.Element} The CurrencyConverter component
+ */
+const CurrencyConverter = ({ currencies, onError }) => {
   const [fromCurrency, setFromCurrency] = useState('USD');
   const [toCurrency, setToCurrency] = useState('EUR');
   const [amount, setAmount] = useState('100');
   const [convertedAmount, setConvertedAmount] = useState(null);
   const [converting, setConverting] = useState(false);
 
-  // Handle currency conversion
+  /**
+   * Handle currency conversion
+   * Fetches conversion rate from API and calculates result
+   * @returns {Promise<void>}
+   */
   const handleConvert = async () => {
     if (!fromCurrency || !toCurrency || !amount) return;
     
@@ -37,7 +49,10 @@ function CurrencyConverter({ currencies, onError }) {
     }
   };
 
-  // Swap currencies in converter
+  /**
+   * Swap source and target currencies
+   * @returns {void}
+   */
   const handleSwapCurrencies = () => {
     setFromCurrency(toCurrency);
     setToCurrency(fromCurrency);
@@ -132,6 +147,6 @@ function CurrencyConverter({ currencies, onError }) {
       </Card.Content>
     </Card>
   );
-}
+};
 
 export default CurrencyConverter;
