@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 import { initRedis, closeRedis } from './config/redis.js';
 import { closePool } from './config/database.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -25,6 +27,12 @@ app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
+
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Currency Exchange API Docs'
+}));
 
 // Health check
 app.get('/health', (req, res) => {

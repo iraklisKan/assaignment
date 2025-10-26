@@ -27,6 +27,8 @@
     "node-cron": "^3.0.3",
     "pg": "^8.11.3",
     "redis": "^4.6.10",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
