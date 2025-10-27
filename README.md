@@ -192,17 +192,6 @@ npm test
 - SQL injection protection via parameterized queries
 - CORS enabled for frontend origin
 
-## 📖 Documentation
-
-Detailed documentation available in the `docs/` directory:
-
-- [Architecture Overview](docs/ARCHITECTURE.md)
-- [Backend Documentation](docs/BACKEND.md)
-- [Frontend Documentation](docs/FRONTEND.md)
-- [Database Schema](docs/DATABASE.md)
-- [Configuration Guide](docs/CONFIGURATION.md)
-- [Testing Guide](docs/TESTS.md)
-
 ## 🌟 Key Technologies
 
 ### Backend
