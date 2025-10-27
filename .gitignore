@@ -19,10 +19,19 @@ build/
 .idea/
 *.swp
 *.swo
+*.swn
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Jest snapshots (outdated)
+**/__snapshots__/
+
+# Build cache
+.cache/
+**/.cache/
 
 # Test coverage
 coverage/
