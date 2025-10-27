@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -34,14 +34,5 @@ api.interceptors.response.use(
     return Promise.reject(err);
   }
 );
-
-// Integrations API
-export const integrationsAPI = {
-  getAll: (params) => api.get('/api/integrations', { params }),
-  create: (data) => api.post('/api/integrations', data),
-  update: (id, data) => api.put(`/api/integrations/${id}`, data),
-  hardDelete: (id) => api.delete(`/api/integrations/${id}/permanent`),
-  getProviders: () => api.get('/api/integrations/providers')
-};
 
 export default api;

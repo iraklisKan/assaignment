@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { integrationsAPI } from '../services/api';
+import axios from 'axios';
 import IntegrationForm from '../components/IntegrationForm.jsx';
 import { 
   Button, 
@@ -10,6 +10,8 @@ import {
   Table,
   EmptyState
 } from '../components/ui/index.jsx';
+
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
 /**
  * Filter options for integration status
@@ -38,7 +40,7 @@ const IntegrationsPage = () => {
     try {
       setLoading(true);
       const params = activeFilter === 'all' ? {} : { active: activeFilter === 'active' };
-      const response = await integrationsAPI.getAll(params);
+      const response = await axios.get(`${API_BASE}/api/integrations`, { params });
       setIntegrations(response.data.data);
       setError(null);
     } catch (err) {
@@ -50,7 +52,7 @@ const IntegrationsPage = () => {
 
   const fetchProviders = useCallback(async () => {
     try {
-      const response = await integrationsAPI.getProviders();
+      const response = await axios.get(`${API_BASE}/api/integrations/providers`);
       setProviders(response.data.data);
     } catch (err) {
       console.error('Failed to load providers:', err);
@@ -77,7 +79,7 @@ const IntegrationsPage = () => {
     if (!window.confirm(`Are you sure you want to ${action} "${integration.name}"?`)) return;
 
     try {
-      await integrationsAPI.update(integration.id, { active: !integration.active });
+      await axios.put(`${API_BASE}/api/integrations/${integration.id}`, { active: !integration.active });
       fetchIntegrations();
     } catch (err) {
       alert(`Failed to ${action} integration: ${err.message}`);
@@ -88,7 +90,7 @@ const IntegrationsPage = () => {
     if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${name}"? This action cannot be undone.`)) return;
 
     try {
-      await integrationsAPI.hardDelete(id);
+      await axios.delete(`${API_BASE}/api/integrations/${id}/permanent`);
       fetchIntegrations();
     } catch (err) {
       alert(`Failed to delete integration: ${err.message}`);
@@ -97,9 +99,9 @@ const IntegrationsPage = () => {
 
   const handleFormSubmit = async (data) => {
     if (editingIntegration) {
-      await integrationsAPI.update(editingIntegration.id, data);
+      await axios.put(`${API_BASE}/api/integrations/${editingIntegration.id}`, data);
     } else {
-      await integrationsAPI.create(data);
+      await axios.post(`${API_BASE}/api/integrations`, data);
     }
     setShowForm(false);
     setEditingIntegration(null);
