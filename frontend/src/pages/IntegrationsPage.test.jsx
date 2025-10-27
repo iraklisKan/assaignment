@@ -20,7 +20,6 @@ describe("IntegrationsPage", () => {
     expect(container.firstChild).toBeInTheDocument();
   });
 
-  // @REVIEW: you can also match snapshots, this automatically generates a snapshot file inside the __snapshots__ folder, see https://jestjs.io/docs/snapshot-testing
   it("should match snapshot", () => {
     const { container } = render(<IntegrationsPage />);
     expect(container.firstChild).toMatchSnapshot();
