@@ -148,25 +148,35 @@ assaignment/
 
 ## 🔌 API Endpoints
 
+### Documentation
+- `GET /api-docs` - **Swagger/OpenAPI interactive documentation**
+
 ### Rates
 - `GET /api/rates/currencies` - Get available currencies
+- `GET /api/rates/base-currencies` - Get configured base currencies
 - `GET /api/rates` - Get latest exchange rates
+- `GET /api/rates/latest` - Get latest exchange rates (alias)
 - `GET /api/rates/history` - Get historical rates
 
 ### Conversion
 - `GET /api/convert?from=USD&to=EUR&amount=100` - Convert currency
 
 ### Integrations
+- `GET /api/integrations/providers` - Get supported providers
 - `GET /api/integrations` - List all integrations
 - `POST /api/integrations` - Create new integration
+- `GET /api/integrations/:id` - Get integration details
 - `PUT /api/integrations/:id` - Update integration
-- `DELETE /api/integrations/:id` - Deactivate integration
+- `DELETE /api/integrations/:id` - Deactivate integration (soft delete)
+- `DELETE /api/integrations/:id/permanent` - Permanently delete integration
 
 ### Monitoring
 - `GET /api/monitoring/health` - System health check
 - `GET /api/monitoring/usage` - API usage statistics
+- `GET /api/monitoring/scheduler` - Scheduler status
 - `GET /api/monitoring/requests` - Recent API requests
 - `GET /api/monitoring/conversions` - Recent conversions
+- `GET /api/monitoring/conversions/popular` - Popular currency pairs
 
 ## 🧪 Testing
 
@@ -216,7 +226,19 @@ npm test
 - Multi-stage builds
 - Nginx (frontend serving)
 
-## 🐛 Troubleshooting
+## � Accessing Swagger Documentation
+
+Once the application is running, you can access the interactive API documentation:
+
+**Swagger UI**: http://localhost:3001/api-docs
+
+This provides:
+- Interactive API testing interface
+- Complete request/response examples
+- Schema definitions for all endpoints
+- Easy testing without writing code
+
+## �🐛 Troubleshooting
 
 ### Port Already in Use
 
