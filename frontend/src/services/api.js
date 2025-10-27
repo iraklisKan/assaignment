@@ -38,27 +38,10 @@ api.interceptors.response.use(
 // Integrations API
 export const integrationsAPI = {
   getAll: (params) => api.get('/api/integrations', { params }),
-  getById: (id) => api.get(`/api/integrations/${id}`),
   create: (data) => api.post('/api/integrations', data),
   update: (id, data) => api.put(`/api/integrations/${id}`, data),
-  delete: (id) => api.delete(`/api/integrations/${id}`),
   hardDelete: (id) => api.delete(`/api/integrations/${id}/permanent`),
-  getUsage: (id, params) => api.get(`/api/integrations/${id}/usage`, { params }),
   getProviders: () => api.get('/api/integrations/providers')
-};
-
-// Rates API
-export const ratesAPI = {
-  getLatest: (params) => api.get('/api/rates', { params }),
-  getHistory: (params) => api.get('/api/rates/history', { params }),
-  convert: (params) => api.get('/api/convert', { params })
-};
-
-// Monitoring API
-export const monitoringAPI = {
-  getHealth: () => api.get('/api/monitoring/health'),
-  getUsage: (params) => api.get('/api/monitoring/usage', { params }),
-  getScheduler: () => api.get('/api/monitoring/scheduler')
 };
 
 export default api;
