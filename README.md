@@ -232,11 +232,6 @@ Once the application is running, you can access the interactive API documentatio
 
 **Swagger UI**: http://localhost:3001/api-docs
 
-This provides:
-- Interactive API testing interface
-- Complete request/response examples
-- Schema definitions for all endpoints
-- Easy testing without writing code
 
 ## �🐛 Troubleshooting
 
